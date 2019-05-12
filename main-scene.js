@@ -11,14 +11,12 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
 const Main_Scene =
 class Solar_System extends Scene
-{        
+{                                             // **Solar_System**:  Your Assingment's Scene.
   constructor()
     {                  // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
       super();
                                                         // At the beginning of our program, load one of each of these shape 
-                                                        // definitions onto the GPU.  NOTE:  Only do this ONCE per shape it
-                                                        // would be redundant to tell it again.  You should just re-use the
-                                                        // one called "box" more than once in display() to draw multiple cubes.
+                                                        // definitions onto the GPU.  NOTE:  Only do this ONCE per shape.
                                                         // Don't define more than one blueprint for the same thing here.
 
                                                 // TODO (#1):  Complete this list with any additional shapes you need.
@@ -26,11 +24,11 @@ class Solar_System extends Scene
                    'ball_4' : new Subdivision_Sphere( 4 ),
                      'star' : new Planar_Star() };
 
-                        // TODO (#1d): Modify the ball_repeat shape's existing texture coordinates in place.  Multiply them all by 5.
+                        // TODO (#1d): Modify one sphere shape's existing texture coordinates in place.  Multiply them all by 5.
       // this.shapes.ball_repeat.arrays.texture_coord.forEach( coord => coord
       
-                                                  // *** Materials: *** Define a shader, and then define materials that use
-                                                  // that shader.  Materials wrap a dictionary of "options" for the shader.
+                                                              // *** Shaders ***
+
                                                               // NOTE: The 2 in each shader argument refers to the max
                                                               // number of lights, which must be known at compile time.
                                                               
@@ -46,6 +44,8 @@ class Solar_System extends Scene
       const black_hole_shader = new Black_Hole_Shader();
       const sun_shader        = new Sun_Shader();
       
+                                              // *** Materials: *** wrap a dictionary of "options" for a shader.
+
                                               // TODO (#2):  Complete this list with any additional materials you need:
 
       this.materials = { plastic: new Material( phong_shader, 
@@ -87,8 +87,9 @@ class Solar_System extends Scene
       if( !context.scratchpad.controls ) 
         { 
           this.children.push( context.scratchpad.controls = new defs.Movement_Controls() ); 
-          this.children.push( this.camera_teleporter = new Camera_Teleporter() );
 
+                                // Add a helper scene / child scene that allows viewing each moving body up close.
+          this.children.push( this.camera_teleporter = new Camera_Teleporter() );
 
                     // Define the global camera and projection matrices, which are stored in program_state.  The camera
                     // matrix follows the usual format for transforms, but with opposite values (cameras exist as 
