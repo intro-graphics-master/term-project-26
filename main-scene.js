@@ -184,6 +184,31 @@ class Solar_System extends Scene
                                                 // matrix a bit so you can see the planet, or maybe appear to be standing
                                                 // on it.  Remember the moons.
       // this.camera_teleporter.cameras.push( Mat4.inverse( 
+
+
+
+
+      // ***** BEGIN TEST SCENE *****               
+                                          // TODO:  Delete or comment out the rest of display(), starting here:
+
+      program_state.set_camera( Mat4.translation([ 0,3,-10 ]) );
+      const angle = Math.sin( t );
+      const light_position = Mat4.rotation( angle, [ 1,0,0 ] ).times( Vec.of( 0,-1,1,0 ) );
+      program_state.lights = [ new Light( light_position, Color.of( 1,1,1,1 ), 1000000 ) ];
+      model_transform = Mat4.identity();
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic.override( yellow ) );
+      model_transform.post_multiply( Mat4.translation([ 0, -2, 0 ]) );
+      this.shapes.ball_4.draw( context, program_state, model_transform, this.materials.metal_earth.override( blue ) );
+      model_transform.post_multiply( Mat4.rotation( t, Vec.of( 0,1,0 ) ) )
+      model_transform.post_multiply( Mat4.rotation( 1, Vec.of( 0,0,1 ) )
+                             .times( Mat4.scale      ([ 1,   2, 1 ]) )
+                             .times( Mat4.translation([ 0,-1.5, 0 ]) ) );
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic_stars.override( yellow ) );
+
+      // ***** END TEST SCENE *****
+
+
+
     }
 }
 
