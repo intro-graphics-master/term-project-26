@@ -17,14 +17,15 @@ class Solar_System extends Scene
       super();
                                                         // At the beginning of our program, load one of each of these shape 
                                                         // definitions onto the GPU.  NOTE:  Only do this ONCE per shape.
-                                                        // Don't define more than one blueprint for the same thing here.
+                                                        // Don't define blueprints for shapes in display() every frame.
 
                                                 // TODO (#1):  Complete this list with any additional shapes you need.
       this.shapes = { 'box' : new Cube(),
                    'ball_4' : new Subdivision_Sphere( 4 ),
                      'star' : new Planar_Star() };
 
-                        // TODO (#1d): Modify one sphere shape's existing texture coordinates in place.  Multiply them all by 5.
+                                                        // TODO (#1d): Modify one sphere shape's existing texture 
+                                                        // coordinates in place.  Multiply them all by 5.
       // this.shapes.ball_repeat.arrays.texture_coord.forEach( coord => coord
       
                                                               // *** Shaders ***
@@ -36,7 +37,8 @@ class Solar_System extends Scene
       const phong_shader      = new defs.Phong_Shader  (2);
                                                               // Adding textures to the previous shader:
       const texture_shader    = new defs.Textured_Phong(2);
-                                 // Same thing, but with a trick to make the textures seemingly interact with the lights:
+                                                              // Same thing, but with a trick to make the textures 
+                                                              // seemingly interact with the lights:
       const texture_shader_2  = new defs.Fake_Bump_Map (2);
                                                               // A Simple Gouraud Shader that you will implement:
       const gouraud_shader    = new Gouraud_Shader     (2);
@@ -85,7 +87,7 @@ class Solar_System extends Scene
      
                            // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
       if( !context.scratchpad.controls ) 
-        { 
+        {                       // Add a movement controls panel to the page:
           this.children.push( context.scratchpad.controls = new defs.Movement_Controls() ); 
 
                                 // Add a helper scene / child scene that allows viewing each moving body up close.
@@ -106,7 +108,7 @@ class Solar_System extends Scene
                                                                       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
 
-                                                  // Have to reset for each frame:
+                                                  // Have to reset this for each frame:
       this.camera_teleporter.cameras = [];
       this.camera_teleporter.cameras.push( Mat4.look_at( Vec.of( 0,10,20 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ) );
 
@@ -127,10 +129,6 @@ class Solar_System extends Scene
       /**********************************
       Start coding down here!!!!
       **********************************/         
-                                                  // From here on down it's just some example shapes drawn for you -- freely 
-                                                  // replace them with your own!  Notice the usage of the Mat4 functions 
-                                                  // translation(), scale(), and rotation() to generate matrices, and the 
-                                                  // function times(), which generates products of matrices.
 
       const blue = Color.of( 0,0,.5,1 ), yellow = Color.of( .5,.5,0,1 );
 
@@ -139,8 +137,8 @@ class Solar_System extends Scene
       let model_transform = Mat4.identity();
 
                                                   // TODO (#3b):  Use the time-varying value of sun_size to create a scale matrix 
-                                                  // for the sun. Also use it to create a color that turns redder as 
-                                                  // sun_size increases, and bluer as it decreases.
+                                                  // for the sun. Also use it to create a color that turns redder as sun_size
+                                                  // increases, and bluer as it decreases.
       const smoothly_varying_ratio = .5 + .5 * Math.sin( 2 * Math.PI * t/10 ),
             sun_size = 1 + 2 * smoothly_varying_ratio,
                  sun = undefined,
@@ -160,9 +158,9 @@ class Solar_System extends Scene
                             // pass in a modified version instead.  Call .override( modifier ) on the material to
                             // generate a new one that uses the below modifier, replacing the ambient term with a 
                             // new value based on our light switch.                         
-      const modifier = { ambient: this.lights_on ? 0.3 : 0.0 };
+      const modifier = this.lights_on ? { ambient: 0.3 } : { ambient: 0.0 };
 
-                                                // TODO (#3d):  Draw the sun using its matrix (crated by you above) and material.
+                                                // TODO (#3d):   Draw the sun using its matrix (crated by you above) and material.
      
                                                 // TODO (#4d1):  Draw planet 1 orbiting at 5 units radius, revolving AND rotating at 1 radian/sec.
       
@@ -180,7 +178,7 @@ class Solar_System extends Scene
       
                                                 // TODO (#5a): If the light switch is on, loop through star_matrices and draw 2D stars.
       
-                                                // TODO (#7b): Give the child scene (camera_teleporter) the inverted matrices
+                                                // TODO (#7b): Give the child scene (camera_teleporter) the *inverted* matrices
                                                 // for each of your objects, mimicking the examples above.  Tweak each
                                                 // matrix a bit so you can see the planet, or maybe appear to be standing
                                                 // on it.  Remember the moons.
@@ -190,7 +188,7 @@ class Solar_System extends Scene
 
 
       // ***** BEGIN TEST SCENE *****               
-                                          // TODO:  Delete or comment out the rest of display(), starting here:
+                                          // TODO:  Delete (or comment out) the rest of display(), starting here:
 
       program_state.set_camera( Mat4.translation([ 0,3,-10 ]) );
       const angle = Math.sin( t );
@@ -207,6 +205,8 @@ class Solar_System extends Scene
       this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic_stars.override( yellow ) );
 
       // ***** END TEST SCENE *****
+
+      // Warning: Get rid of the test scene, or else the camera position and movement will not work.
 
 
 
@@ -312,7 +312,7 @@ class Gouraud_Shader extends defs.Phong_Shader
                                           // fragment shader code to the end of main() here.  Computing the Phong
                                           // color here instead of in the fragment shader is called Gouraud
                                           // Shading.  
-                                          // Modify the lines that assign to gl_FragColor, to assign them to "color", 
+                                          // Modify any lines that assign to gl_FragColor, to assign them to "color", 
                                           // the varying you made, instead.  You cannot assign to gl_FragColor from 
                                           // within the vertex shader (because it is a special variable for final
                                           // fragment shader color), but you can assign to varyings that will be 
@@ -354,7 +354,8 @@ class Black_Hole_Shader extends Shader         // Simple "procedural" texture sh
                   // available here.  Finally, pass in the animation_time from program_state. You don't need to allow
                   // custom materials for this part so you don't need any values from the material object.
                   // For an example of how to send variables to the GPU, check out the simple shader "Funny_Shader".
-       
+
+        // context.uniformMatrix4fv( gpu_addresses.projection_camera_model_transform,       
       }
   shared_glsl_code()            // ********* SHARED CODE, INCLUDED IN BOTH SHADERS *********
     { 
