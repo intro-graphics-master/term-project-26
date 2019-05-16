@@ -24,6 +24,32 @@ class Solar_System extends Scene
                    'ball_4' : new Subdivision_Sphere( 4 ),
                      'star' : new Planar_Star() };
 
+
+
+
+//   for( let i = 0; i < this.shapes.ball_4.arrays.position.length; i++ )
+//      this.shapes.ball_4.arrays.position[i] = this.shapes.ball_4.arrays.position[i].randomized(1);
+
+
+//     for( let p of this.shapes.ball_4.arrays.position )
+//       p.scale(2);
+  
+
+//     this.shapes.ball_4.arrays.position.forEach( p => p.scale(2) );
+    
+
+    //function a( argslkdjfaldskf ) { afadshfdah }
+
+    this.shapes.ball_4.arrays.texture_coord = this.shapes.ball_4.arrays.position.map( p => 
+
+      {
+         var a = 9;
+
+         p.times( .5 ).plus(.5);
+
+         return Vec.of( p[0], p[1] );
+
+      } )
                                                         // TODO (#1d): Modify one sphere shape's existing texture 
                                                         // coordinates in place.  Multiply them all by 5.
       // this.shapes.ball_repeat.arrays.texture_coord.forEach( coord => coord
@@ -190,7 +216,7 @@ class Solar_System extends Scene
       // ***** BEGIN TEST SCENE *****               
                                           // TODO:  Delete (or comment out) the rest of display(), starting here:
 
-      program_state.set_camera( Mat4.translation([ 0,3,-10 ]) );
+      //program_state.set_camera( Mat4.translation([ 0,3,-10 ]) );
       const angle = Math.sin( t );
       const light_position = Mat4.rotation( angle, [ 1,0,0 ] ).times( Vec.of( 0,-1,1,0 ) );
       program_state.lights = [ new Light( light_position, Color.of( 1,1,1,1 ), 1000000 ) ];
