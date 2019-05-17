@@ -45,7 +45,7 @@ class Solar_System extends Scene
       {
          var a = 9;
 
-         p.times( .5 ).plus(.5);
+         p = p.times( .5 ).plus(.5);
 
          return Vec.of( p[0], p[1] );
 
