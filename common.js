@@ -234,6 +234,156 @@ class Subdivision_Sphere extends Shape
 }
 
 
+
+const Grid_Patch = defs.Grid_Patch =
+class Grid_Patch extends Shape       // A grid of rows and columns you can distort. A tesselation of triangles connects the
+{                                           // points, generated with a certain predictable pattern of indices.  Two callbacks
+                                            // allow you to dynamically define how to reach the next row or column.
+  constructor( rows, columns, next_row_function, next_column_function, texture_coord_range = [ [ 0, rows ], [ 0, columns ] ]  )
+    { super( "position", "normal", "texture_coord" );
+      let points = [];
+      for( let r = 0; r <= rows; r++ ) 
+      { points.push( new Array( columns+1 ) );                                                    // Allocate a 2D array.
+                                             // Use next_row_function to generate the start point of each row. Pass in the progress ratio,
+        points[ r ][ 0 ] = next_row_function( r/rows, points[ r-1 ] && points[ r-1 ][ 0 ] );      // and the previous point if it existed.                                                                                                  
+      }
+      for(   let r = 0; r <= rows;    r++ )               // From those, use next_column function to generate the remaining points:
+        for( let c = 0; c <= columns; c++ )
+        { if( c > 0 ) points[r][ c ] = next_column_function( c/columns, points[r][ c-1 ], r/rows );
+      
+          this.arrays.position.push( points[r][ c ] );        
+                                                                                      // Interpolate texture coords from a provided range.
+          const a1 = c/columns, a2 = r/rows, x_range = texture_coord_range[0], y_range = texture_coord_range[1];
+          this.arrays.texture_coord.push( Vec.of( ( a1 )*x_range[1] + ( 1-a1 )*x_range[0], ( a2 )*y_range[1] + ( 1-a2 )*y_range[0] ) );
+        }
+      for(   let r = 0; r <= rows;    r++ )            // Generate normals by averaging the cross products of all defined neighbor pairs.
+        for( let c = 0; c <= columns; c++ )
+        { let curr = points[r][c], neighbors = new Array(4), normal = Vec.of( 0,0,0 );          
+          for( let [ i, dir ] of [ [ -1,0 ], [ 0,1 ], [ 1,0 ], [ 0,-1 ] ].entries() )         // Store each neighbor by rotational order.
+            neighbors[i] = points[ r + dir[1] ] && points[ r + dir[1] ][ c + dir[0] ];        // Leave "undefined" in the array wherever
+                                                                                              // we hit a boundary.
+          for( let i = 0; i < 4; i++ )                                          // Take cross-products of pairs of neighbors, proceeding
+            if( neighbors[i] && neighbors[ (i+1)%4 ] )                          // a consistent rotational direction through the pairs:
+              normal = normal.plus( neighbors[i].minus( curr ).cross( neighbors[ (i+1)%4 ].minus( curr ) ) );          
+          normal.normalize();                                                              // Normalize the sum to get the average vector.
+                                                     // Store the normal if it's valid (not NaN or zero length), otherwise use a default:
+          if( normal.every( x => x == x ) && normal.norm() > .01 )  this.arrays.normal.push( Vec.from( normal ) );    
+          else                                                      this.arrays.normal.push( Vec.of( 0,0,1 )    );
+        }   
+        
+      for( var h = 0; h < rows; h++ )             // Generate a sequence like this (if #columns is 10):  
+        for( var i = 0; i < 2 * columns; i++ )    // "1 11 0  11 1 12  2 12 1  12 2 13  3 13 2  13 3 14  4 14 3..." 
+          for( var j = 0; j < 3; j++ )
+            this.indices.push( h * ( columns + 1 ) + columns * ( ( i + ( j % 2 ) ) % 2 ) + ( ~~( ( j % 3 ) / 2 ) ? 
+                                   ( ~~( i / 2 ) + 2 * ( i % 2 ) )  :  ( ~~( i / 2 ) + 1 ) ) );
+    }
+  static sample_array( array, ratio )                 // Optional but sometimes useful as a next row or column operation. In a given array
+    {                                                 // of points, intepolate the pair of points that our progress ratio falls between.  
+      const frac = ratio * ( array.length - 1 ), alpha = frac - Math.floor( frac );
+      return array[ Math.floor( frac ) ].mix( array[ Math.ceil( frac ) ], alpha );
+    }
+}
+
+
+const Surface_Of_Revolution = defs.Surface_Of_Revolution =
+class Surface_Of_Revolution extends Grid_Patch      
+{                                                   // SURFACE OF REVOLUTION: Produce a curved "sheet" of triangles with rows and columns.
+                                                    // Begin with an input array of points, defining a 1D path curving through 3D space -- 
+                                                    // now let each such point be a row.  Sweep that whole curve around the Z axis in equal 
+                                                    // steps, stopping and storing new points along the way; let each step be a column. Now
+                                                    // we have a flexible "generalized cylinder" spanning an area until total_curvature_angle.
+  constructor( rows, columns, points, texture_coord_range, total_curvature_angle = 2*Math.PI )
+    { const row_operation =     i => Grid_Patch.sample_array( points, i ),
+         column_operation = (j,p) => Mat4.rotation( total_curvature_angle/columns, Vec.of( 0,0,1 ) ).times(p.to4(1)).to3();
+         
+       super( rows, columns, row_operation, column_operation, texture_coord_range );
+    }
+}
+
+
+const Regular_2D_Polygon = defs.Regular_2D_Polygon =
+class Regular_2D_Polygon extends Surface_Of_Revolution     // Approximates a flat disk / circle
+  { constructor( rows, columns )
+      { super( rows, columns, Vec.cast( [0, 0, 0], [1, 0, 0] ) ); 
+        this.arrays.normal = this.arrays.normal.map( x => Vec.of( 0,0,1 ) );
+        this.arrays.texture_coord.forEach( (x, i, a) => a[i] = this.arrays.position[i].map( x => x/2 + .5 ).slice(0,2) ); } }
+
+const Cylindrical_Tube = defs.Cylindrical_Tube =
+class Cylindrical_Tube extends Surface_Of_Revolution    // An open tube shape with equally sized sections, pointing down Z locally.    
+  { constructor( rows, columns, texture_range ) { super( rows, columns, Vec.cast( [1, 0, .5], [1, 0, -.5] ), texture_range ); } }
+
+const Cone_Tip = defs.Cone_Tip =
+class Cone_Tip extends Surface_Of_Revolution    // Note:  Touches the Z axis; squares degenerate into triangles as they sweep around.
+  { constructor( rows, columns, texture_range ) { super( rows, columns, Vec.cast( [0, 0, 1],  [1, 0, -1]  ), texture_range ); } }
+
+const Torus = defs.Torus =
+class Torus extends Shape                                         // Build a donut shape.  An example of a surface of revolution.
+  { constructor( rows, columns )  
+      { super( "position", "normal", "texture_coord" );
+        const circle_points = Array( rows ).fill( Vec.of( 1/3,0,0 ) )
+                                           .map( (p,i,a) => Mat4.translation([ -2/3,0,0 ])
+                                                    .times( Mat4.rotation( i/(a.length-1) * 2*Math.PI, Vec.of( 0,-1,0 ) ) )
+                                                    .times( Mat4.scale([ 1,1,3 ]) )
+                                                    .times( p.to4(1) ).to3() );
+
+        Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points ] );         
+      } }
+
+const Grid_Sphere = defs.Grid_Sphere =
+class Grid_Sphere extends Shape                  // With lattitude / longitude divisions; this means singularities are at 
+  { constructor( rows, columns, texture_range )         // the mesh's top and bottom.  Subdivision_Sphere is a better alternative.
+      { super( "position", "normal", "texture_coord" );
+        const semi_circle_points = Array( rows ).fill( Vec.of( 0,0,1 ) ).map( (x,i,a) =>
+                                     Mat4.rotation( i/(a.length-1) * Math.PI, Vec.of( 0,1,0 ) ).times( x.to4(1) ).to3() );
+        
+        Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, semi_circle_points, texture_range ] );
+      } }
+
+const Closed_Cone = defs.Closed_Cone =
+class Closed_Cone extends Shape     // Combine a cone tip and a regular polygon to make a closed cone.
+  { constructor( rows, columns, texture_range )
+      { super( "position", "normal", "texture_coord" );
+        Cone_Tip          .insert_transformed_copy_into( this, [ rows, columns, texture_range ]);    
+        Regular_2D_Polygon.insert_transformed_copy_into( this, [ 1, columns ], Mat4.rotation( Math.PI, Vec.of(0, 1, 0) )
+                                                                       .times( Mat4.translation([ 0, 0, 1 ]) ) ); } }
+
+const Rounded_Closed_Cone = defs.Rounded_Closed_Cone =
+class Rounded_Closed_Cone extends Surface_Of_Revolution   // An alternative without two separate sections
+  { constructor( rows, columns, texture_range ) { super( rows, columns, Vec.cast( [0, 0, 1], [1, 0, -1], [0, 0, -1] ), texture_range ) ; } }
+
+const Capped_Cylinder = defs.Capped_Cylinder =
+class Capped_Cylinder extends Shape                // Combine a tube and two regular polygons to make a closed cylinder.
+  { constructor( rows, columns, texture_range )           // Flat shade this to make a prism, where #columns = #sides.
+      { super( "position", "normal", "texture_coord" );
+        Cylindrical_Tube  .insert_transformed_copy_into( this, [ rows, columns, texture_range ] );
+        Regular_2D_Polygon.insert_transformed_copy_into( this, [ 1, columns ],                                                  Mat4.translation([ 0, 0, .5 ]) );
+        Regular_2D_Polygon.insert_transformed_copy_into( this, [ 1, columns ], Mat4.rotation( Math.PI, Vec.of(0, 1, 0) ).times( Mat4.translation([ 0, 0, .5 ]) ) ); } }
+
+const Rounded_Capped_Cylinder = defs.Rounded_Capped_Cylinder =
+class Rounded_Capped_Cylinder extends Surface_Of_Revolution   // An alternative without three separate sections
+  { constructor ( rows, columns, texture_range ) { super( rows, columns, Vec.cast( [0, 0, .5], [1, 0, .5], [1, 0, -.5], [0, 0, -.5] ), texture_range ); } }
+  
+  
+const Axis_Arrows = defs.Axis_Arrows =
+class Axis_Arrows extends Shape                               // An axis set with arrows, made out of a lot of various primitives.
+{ constructor()
+    { super( "position", "normal", "texture_coord" );
+      var stack = [];       
+      Subdivision_Sphere.insert_transformed_copy_into( this, [ 3 ], Mat4.rotation( Math.PI/2, Vec.of( 0,1,0 ) ).times( Mat4.scale([ .25, .25, .25 ]) ) );
+      this.drawOneAxis( Mat4.identity(),                                                            [[ .67, 1  ], [ 0,1 ]] );
+      this.drawOneAxis( Mat4.rotation(-Math.PI/2, Vec.of(1,0,0)).times( Mat4.scale([  1, -1, 1 ])), [[ .34,.66 ], [ 0,1 ]] );
+      this.drawOneAxis( Mat4.rotation( Math.PI/2, Vec.of(0,1,0)).times( Mat4.scale([ -1,  1, 1 ])), [[  0 ,.33 ], [ 0,1 ]] ); 
+    }
+  drawOneAxis( transform, tex )    // Use a different texture coordinate range for each of the three axes, so they show up differently.
+    { Closed_Cone     .insert_transformed_copy_into( this, [ 4, 10, tex ], transform.times( Mat4.translation([   0,   0,  2 ]) ).times( Mat4.scale([ .25, .25, .25 ]) ) );
+      Cube            .insert_transformed_copy_into( this, [ ],            transform.times( Mat4.translation([ .95, .95, .45]) ).times( Mat4.scale([ .05, .05, .45 ]) ) );
+      Cube            .insert_transformed_copy_into( this, [ ],            transform.times( Mat4.translation([ .95,   0, .5 ]) ).times( Mat4.scale([ .05, .05, .4  ]) ) );
+      Cube            .insert_transformed_copy_into( this, [ ],            transform.times( Mat4.translation([   0, .95, .5 ]) ).times( Mat4.scale([ .05, .05, .4  ]) ) );
+      Cylindrical_Tube.insert_transformed_copy_into( this, [ 7, 7,  tex ], transform.times( Mat4.translation([   0,   0,  1 ]) ).times( Mat4.scale([  .1,  .1,  2  ]) ) );
+    }
+}
+
+
 const Minimal_Shape = defs.Minimal_Shape =
 class Minimal_Shape extends tiny.Vertex_Buffer
 {                                     // **Minimal_Shape** an even more minimal triangle, with three
@@ -258,7 +408,7 @@ class Minimal_Webgl_Demo extends Scene
     }
   display( context, graphics_state )
     {                                           // Every frame, simply draw the Triangle at its default location.
-      this.shapes.triangle.draw( context, graphics_state, Mat4.identity(), this.shader.material() );
+      this.shapes.triangle.draw( context, graphics_state, Mat4.identity(), new Material( this.shader ) );
     }
  make_control_panel()
     { this.control_panel.innerHTML += "(This one has no controls)";
@@ -272,7 +422,7 @@ class Basic_Shader extends Shader
                                    // maanges a GPU program.  Basic_Shader is a trivial pass-through shader that applies a
                                    // shape's matrices and then simply samples literal colors stored at each vertex.
  update_GPU( context, gpu_addresses, graphics_state, model_transform, material )
-      {       // update_GPU():  Define how to synchronize our JavaScript's variables to the GPU's:
+      {       // update_GPU():  Defining how to synchronize our JavaScript's variables to the GPU's:
         const [ P, C, M ] = [ graphics_state.projection_transform, graphics_state.camera_inverse, model_transform ],
                       PCM = P.times( C ).times( M );
         context.uniformMatrix4fv( gpu_addresses.projection_camera_model_transform, false, 
@@ -284,7 +434,7 @@ class Basic_Shader extends Shader
       `;
     }
   vertex_glsl_code()           // ********* VERTEX SHADER *********
-    { return `
+    { return this.shared_glsl_code() + `
         attribute vec4 color;
         attribute vec3 position;                            // Position is expressed in object coordinates.
         uniform mat4 projection_camera_model_transform;
@@ -296,7 +446,7 @@ class Basic_Shader extends Shader
         }`;
     }
   fragment_glsl_code()         // ********* FRAGMENT SHADER *********
-    { return `
+    { return this.shared_glsl_code() + `
         void main()
         {                                                     // The interpolation gets done directly on the per-vertex colors:
           gl_FragColor = VERTEX_COLOR;
@@ -346,8 +496,6 @@ class Funny_Shader extends Shader
         }`;
     }
 }
-
-
 const Phong_Shader = defs.Phong_Shader =
 class Phong_Shader extends Shader
 {                                  // **Phong_Shader** is a subclass of Shader, which stores and maanges a GPU program.  
@@ -739,5 +887,57 @@ class Movement_Controls extends Scene
                                      // Log some values:
       this.pos    = this.inverse().times( Vec.of( 0,0,0,1 ) );
       this.z_axis = this.inverse().times( Vec.of( 0,0,1,0 ) );
+    }
+}
+
+
+
+const Program_State_Viewer = defs.Program_State_Viewer =
+class Program_State_Viewer extends Scene
+{                                             // **Program_State_Viewer** just toggles, monitors, and reports some
+                                              // global values via its control panel.
+  make_control_panel()
+    {                         // display() of this scene will replace the following object:
+      this.program_state = {};
+      this.key_triggered_button( "(Un)pause animation", ["Alt", "a"], () => this.program_state.animate ^= 1 );
+      this.new_line();
+      this.live_string( box => 
+                { box.textContent = "Animation Time: " + ( this.program_state.animation_time/1000 ).toFixed(3) + "s" } );
+      this.live_string( box => 
+                { box.textContent = this.program_state.animate ? " " : " (paused)" } );
+      this.new_line();
+      
+      const show_object = ( element, obj = this.program_state ) => 
+      { 
+       if( this.box ) this.box.textContent = "adsfadhf khfakdad fhadsf adf d hfa kdhfkdsa hfakds hfakd hf";
+         else 
+        this.box = element.appendChild(  document.createTextNode( "div did di fis dfids fids fids fisf dsf sdifds" ) );
+       //   Object.assign( document.createTextNode( "div" ), { style: "overflow:auto; width: 200px" } ) );
+        return;
+                      // TODO: Diagnose why this.box disappears unless we re-create it every frame
+                      // and stick all successive new ones onto element
+
+
+        if( obj !== this.program_state )
+          this.box.appendChild( Object.assign( 
+               document.createElement( "div" ), { className:"link", innerText: "(back to program_state)",
+                                                  onmousedown: () => this.current_object = this.program_state } ) )
+        if( obj.to_string ) 
+          return this.box.appendChild( Object.assign( document.createElement( "div" ), { innerText: obj.to_string() } ) );
+        for( let [key,val] of Object.entries( obj ) )
+        { if( typeof( val ) == "object" ) 
+            this.box.appendChild( Object.assign( document.createElement( "a" ), { className:"link", innerText: key, 
+                                                 onmousedown: () => this.current_object = val } ) )
+          else
+            this.box.appendChild( Object.assign( document.createElement( "span" ), 
+                                                 { innerText: key + ": " + val.toString() } ) );
+          this.box.appendChild( document.createElement( "br" ) );
+        }
+      }
+      this.live_string( box => show_object( box, this.current_object ) );      
+    }
+  display( context, program_state )
+    { this.program_state = program_state;
+      
     }
 }
