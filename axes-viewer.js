@@ -2,46 +2,58 @@ import {tiny, defs} from './common.js';
                                                   // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Material, Shader, Texture, Scene } = tiny;
 
-export class Axes_Viewer extends Scene     // A helper scene (a secondary Scene Component) for helping you visualize the
-{ constructor()                       // coordinate bases that are used in your real scene.  Your scene can feed this
-    { super();                      // object a list of bases to draw as axis arrows.  Pressing the buttons of this
-                                              // helper scene cycles through a list of each basis you have added, drawing
-                                              // the selected one.  Call insert() and pass it a basis to add one to the list.
-                                              // Always reset the data structure by calling reset() before each frame in your scene.
+export class Axes_Viewer extends Scene
+{                                      // **Axes_Viewer** is a helper scene (a secondary Scene Component) for helping you 
+                                       // visualize the coordinate bases that are used in your real scene.  Your scene 
+                                       // can feed this object a list of bases to draw as axis arrows.  Pressing the 
+                                       // buttons of this helper scene cycles through a list of each basis you have added,
+                                       // drawing the selected one.  Call insert() and pass it a basis to add one to the
+                                       // list.
+                                       // Always reset the data structure by calling reset() before each frame in your scene.
 
-                                              // Bases at the same level in your scene's hierarchy can be grouped together and
-                                              // displayed all at once; just store them at the same index in "this.groups" by
-                                              // passing the same ID number into insert().  Normally passing an ID is optional;
-                                              // omitting it inserts your basis in the next empty group.  To re-use IDs easily,
-      this.selected_basis_id = 0;             // obtain the next unused ID by calling next_group_id(), so you can re-use it for
-      this.reset();                           // all bases that you want to appear at the same level. 
+                                          // Bases at the same level in your scene's hierarchy can be grouped together and
+                                          // displayed all at once; just store them at the same index in "this.groups" by
+                                          // passing the same ID number into insert().  Normally passing an ID is optional;
+                                          // omitting it inserts your basis in the next empty group.  To re-use IDs easily,
+                                          // obtain the next unused ID by calling next_group_id(), so you can re-use it for
+                                          // all bases that you want to appear at the same level.
+  constructor()
+    { super();
+                                              
+      this.selected_basis_id = 0;             
+      this.reset();
       this.shapes = { axes: new defs.Axis_Arrows() };
       const bump = new defs.Fake_Bump_Map();
       this.material = new Material( bump, { color: Color.of( 0,0,0,1 ), ambient: 1, 
                           texture: new Texture( "assets/rgb.jpg" ) });       
     }
-  insert( basis, group_id = ++this.cursor )      // Default to putting the basis in the next empty group; otherwise use group number.
-    { this.cursor = group_id;                    // Update the cursor if a group number was supplied.
+  insert( basis, group_id = ++this.cursor )
+    {                                         // insert(): Default to putting the basis in the next empty group; otherwise 
+                                              // use group number. Update the cursor if a group number was supplied.
+      this.cursor = group_id;
       if( ! this.groups[ group_id ] )
         this.groups[ group_id ] = [ basis ];
       else
         this.groups[ group_id ].push( basis );
     }
   next_group_id() { return this.groups.length }
-  reset()                           // Call this every frame -- The beginning of every call to your scene's display().
-    { this.groups = [ [] ];
+  reset()
+    {                           // reset(): Call this every frame -- The beginning of every call to your scene's display().
+      this.groups = [ [] ];
       this.cursor = -1;
     }
-  make_control_panel()                                                              // Create the buttons for using the viewer:
-    { this.key_triggered_button( "Previous group", [ "g" ], this.decrease );
+  make_control_panel()
+    {                           // make_control_panel(): Create the buttons for using the viewer.
+      this.key_triggered_button( "Previous group", [ "g" ], this.decrease );
       this.key_triggered_button(     "Next group", [ "h" ], this.increase ); this.new_line();
       this.live_string( box => { box.textContent = "Selected basis id: " + this.selected_basis_id } );
     }
   increase() { this.selected_basis_id = Math.min( this.selected_basis_id + 1, this.groups.length-1 ); }
   decrease() { this.selected_basis_id = Math.max( this.selected_basis_id - 1, 0 ); }   // Don't allow selection of negative IDs.
   display( context, program_state )
-    { if( this.groups[ this.selected_basis_id ] )
-        for( let a of this.groups[ this.selected_basis_id ] )         // Draw the selected group of axes arrows.
+    {                                                 // display(): Draw the selected group of axes arrows.
+      if( this.groups[ this.selected_basis_id ] )
+        for( let a of this.groups[ this.selected_basis_id ] )
           this.shapes.axes.draw( context, program_state, a, this.material );
     }
 }
@@ -49,10 +61,11 @@ export class Axes_Viewer extends Scene     // A helper scene (a secondary Scene 
 
 
 export class Axes_Viewer_Test_Scene extends Scene
-{ constructor()               // An example of how your scene should properly manaage an Axes_Viewer
-    { super();                // helper scene, so that it is able to help you draw all the
-                              // coordinate bases in your scene's hierarchy at the correct levels.
-           
+{                             // **Axes_Viewer_Test_Scene** is an example of how your scene should properly manaage 
+                              // an Axes_Viewer child scene, so that it is able to help you draw all the coordinate
+                              // bases in your scene's hierarchy at the correct levels.
+  constructor()
+    { super();
       this.children.push( this.axes_viewer = new Axes_Viewer() );
                                                                   // Scene defaults:
       this.shapes = { box: new defs.Cube() };
@@ -62,7 +75,8 @@ export class Axes_Viewer_Test_Scene extends Scene
   make_control_panel()
     { this.control_panel.innerHTML += "(Substitute your own scene here)" }
   display( context, program_state )
-    { program_state.lights = [ new Light( Vec.of( 0,0,1,0 ), Color.of( 0,1,1,1 ), 100000 ) ];
+    {                                   // display():  *********** See instructions below ***********
+      program_state.lights = [ new Light( Vec.of( 0,0,1,0 ), Color.of( 0,1,1,1 ), 100000 ) ];
 
       if( !context.scratchpad.controls ) 
         { this.children.push( context.scratchpad.controls = new defs.Movement_Controls() ); 
@@ -102,11 +116,13 @@ export class Axes_Viewer_Test_Scene extends Scene
       { 
         model_transform = center.copy();      // Our scene returns back to this matrix twice to position the boxes.
         model_transform.post_multiply( Mat4.translation([  side*2,2,0 ] ) );
-                                              // By passing in an ID here, we accomplish saving both bases we might have here
-                                              // (because of the for loop) at the same hierarchy level so they'll be drawn together.
+                                              // Here there will be two different bases depending on our for loop. 
+                                              // By passing in the old ID here, we accomplish saving both bases at the 
+                                              // same hierarchy level so they'll be drawn together.
         this.axes_viewer.insert( model_transform.copy(), id );
         model_transform.post_multiply( Mat4.rotation( Math.sin(t), Vec.of( 0,0,side ) ) );
-        this.axes_viewer.insert( model_transform.copy() );                  // Subsequent bases will draw at the next level as usual.
+                                              // Count up the ID from there:
+        this.axes_viewer.insert( model_transform.copy() );
         model_transform.post_multiply( Mat4.translation([ side*2,2,0 ] ) );
         this.axes_viewer.insert( model_transform.copy() );
                                                        // Again, draw our scene's boxes as an outline so it doesn't block the axes.

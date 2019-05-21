@@ -2,22 +2,29 @@ import {tiny, defs} from './common.js';
                                                   // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Material, Shader, Texture, Scene } = tiny;
        
-export class Shape_From_File extends Shape   // A versatile standalone Shape that imports all its arrays' data from an .obj 3D model file.
-{ constructor( filename )
+export class Shape_From_File extends Shape
+{                                   // **Shape_From_File** is a versatile standalone Shape that imports
+                                    // all its arrays' data from an .obj 3D model file.
+  constructor( filename )
     { super( "position", "normal", "texture_coord" );
-      this.load_file( filename );      // Begin downloading the mesh. Once that completes, return control to our parse_into_mesh function.
+                                    // Begin downloading the mesh. Once that completes, return
+                                    // control to our parse_into_mesh function.
+      this.load_file( filename );
     }
   load_file( filename )
-      { return fetch( filename )       // Request the external file and wait for it to load.
+      {                             // Request the external file and wait for it to load.
+                                    // Failure mode:  Loads an empty shape.
+        return fetch( filename )
           .then( response =>
             { if ( response.ok )  return Promise.resolve( response.text() )
               else                return Promise.reject ( response.status )
             })
           .then( obj_file_contents => this.parse_into_mesh( obj_file_contents ) )
-          .catch( error => { this.copy_onto_graphics_card( this.gl ); } )                     // Failure mode:  Loads an empty shape.
+          .catch( error => { this.copy_onto_graphics_card( this.gl ); } )
       }
-  parse_into_mesh( data )                                           // Adapted from the "webgl-obj-loader.js" library found online:
-    { var verts = [], vertNormals = [], textures = [], unpacked = {};   
+  parse_into_mesh( data )
+    {                           // Adapted from the "webgl-obj-loader.js" library found online:
+      var verts = [], vertNormals = [], textures = [], unpacked = {};   
 
       unpacked.verts = [];        unpacked.norms = [];    unpacked.textures = [];
       unpacked.hashindices = {};  unpacked.indices = [];  unpacked.index = 0;
@@ -46,7 +53,8 @@ export class Shape_From_File extends Shape   // A versatile standalone Shape tha
               {
                   var vertex = elements[ j ].split( '/' );
 
-                  unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 0]);   unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 1]);   
+                  unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 0]);
+                  unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 1]);   
                   unpacked.verts.push(+verts[(vertex[0] - 1) * 3 + 2]);
                   
                   if (textures.length) 
@@ -65,29 +73,39 @@ export class Shape_From_File extends Shape   // A versatile standalone Shape tha
           }
         }
       }
-      for( var j = 0; j < unpacked.verts.length/3; j++ )
       {
-        this.arrays.position     .push( Vec.of( unpacked.verts[ 3*j ], unpacked.verts[ 3*j + 1 ], unpacked.verts[ 3*j + 2 ] ) );        
-        this.arrays.normal       .push( Vec.of( unpacked.norms[ 3*j ], unpacked.norms[ 3*j + 1 ], unpacked.norms[ 3*j + 2 ] ) );
-        this.arrays.texture_coord.push( Vec.of( unpacked.textures[ 2*j ], unpacked.textures[ 2*j + 1 ]  ));
+      const { verts, norms, textures } = unpacked;
+        for( var j = 0; j < verts.length/3; j++ )
+        { 
+          this.arrays.position     .push( Vec.of( verts[ 3*j ], verts[ 3*j + 1 ], verts[ 3*j + 2 ] ) );        
+          this.arrays.normal       .push( Vec.of( norms[ 3*j ], norms[ 3*j + 1 ], norms[ 3*j + 2 ] ) );
+          this.arrays.texture_coord.push( Vec.of( textures[ 2*j ], textures[ 2*j + 1 ]  ));
+        }
+        this.indices = unpacked.indices;
       }
-      this.indices = unpacked.indices;
-
       this.normalize_positions( false );
       this.ready = true;
     }
-  draw( context, program_state, model_transform, material )       // Cancel all attempts to draw the shape before it loads.
-    { if( this.ready ) super.draw( context, program_state, model_transform, material );   }
+  draw( context, program_state, model_transform, material )
+    {               // draw(): Same as always for shapes, but cancel all 
+                    // attempts to draw the shape before it loads:
+      if( this.ready )
+        super.draw( context, program_state, model_transform, material );
+    }
 }
 
 export class Obj_File_Demo extends Scene     
-  {                                             // An example that loads a single 3D model from an OBJ file.  Detailed model files can be
-                                                // used in place of simpler primitive-based shapes to add complexity to a scene.  Simpler
-                                                // primitives in your scene can just be thought of as placeholders until you find a model
-                                                // file that fits well.  This demo shows the teapot model twice, with one teapot showing
-    constructor()                               // off the Fake_Bump_Map effect while the other has a regular texture and Phong lighting.             
-      { super();      
-        this.shapes = { "teapot": new Shape_From_File( "assets/teapot.obj" ) };             // Load the model file.
+  {                           // **Obj_File_Demo** show how to load a single 3D model from an OBJ file.
+                              // Detailed model files can be used in place of simpler primitive-based
+                              // shapes to add complexity to a scene.  Simpler primitives in your scene
+                              // can just be thought of as placeholders until you find a model file
+                              // that fits well.  This demo shows the teapot model twice, with one 
+                              // teapot showing off the Fake_Bump_Map effect while the other has a 
+                              // regular texture and Phong lighting.             
+    constructor()                               
+      { super();
+                              // Load the model file:
+        this.shapes = { "teapot": new Shape_From_File( "assets/teapot.obj" ) };
         
                                                           // Non bump mapped:
         this.stars = new Material( new defs.Textured_Phong( 1 ),  { color: Color.of( .5,.5,.5,1 ), 
@@ -103,15 +121,18 @@ export class Obj_File_Demo extends Scene
         { program_state.set_camera( Mat4.translation([ 0,0,-5 ]) );    // Locate the camera here (inverted matrix).
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 500 );
         }
-        program_state.lights = [ new Light( Mat4.rotation( t/300, Vec.of(1, 0, 0) ).times( Vec.of( 3,  2,  10, 1 ) ), 
-                                             Color.of( 1, .7, .7, 1 ), 100000 ) ];        // A spinning light to show off the bump map.
+                                                // A spinning light to show off the bump map:
+        program_state.lights = [ new Light( 
+                                 Mat4.rotation( t/300, Vec.of( 1,0,0) ).times( Vec.of( 3,2,10,1 ) ), 
+                                             Color.of( 1,.7,.7,1 ), 100000 ) ];
         
         for( let i of [ -1, 1 ] )
-        { const model_transform = Mat4.rotation( t/2000, Vec.of( 0, 2, 1 ) )              // Spin the 3D model shapes as well.
+        {                                       // Spin the 3D model shapes as well.
+          const model_transform = Mat4.rotation( t/2000, Vec.of( 0, 2, 1 ) )
                           .times( Mat4.translation([ 2*i, 0, 0 ]) )
                           .times( Mat4.rotation( t/1500, Vec.of( -1, 2, 0 ) ) )
                           .times( Mat4.rotation( -Math.PI/2, Vec.of( 1, 0, 0 ) ) );
-          this.shapes.teapot.draw( context, program_state, model_transform, i == 1 ? this.stars : this.bumps );   // Draw the shapes.
+          this.shapes.teapot.draw( context, program_state, model_transform, i == 1 ? this.stars : this.bumps );
         }
       }
   show_explanation( document_element )
