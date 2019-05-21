@@ -318,7 +318,7 @@ class Cone_Tip extends Surface_Of_Revolution    // Note:  Touches the Z axis; sq
 
 const Torus = defs.Torus =
 class Torus extends Shape                                         // Build a donut shape.  An example of a surface of revolution.
-  { constructor( rows, columns )  
+  { constructor( rows, columns, texture_range )  
       { super( "position", "normal", "texture_coord" );
         const circle_points = Array( rows ).fill( Vec.of( 1/3,0,0 ) )
                                            .map( (p,i,a) => Mat4.translation([ -2/3,0,0 ])
@@ -326,7 +326,7 @@ class Torus extends Shape                                         // Build a don
                                                     .times( Mat4.scale([ 1,1,3 ]) )
                                                     .times( p.to4(1) ).to3() );
 
-        Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points ] );         
+        Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points, texture_range ] );         
       } }
 
 const Grid_Sphere = defs.Grid_Sphere =

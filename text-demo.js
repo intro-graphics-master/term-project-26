@@ -1,6 +1,6 @@
 import {tiny, defs} from './common.js';
-const { Vec, Mat, Mat4, Color, Light, 
-        Shape, Shader, Scene, Texture } = tiny;           // Pull these names into this module's scope for convenience.
+                                                  // Pull these names into this module's scope for convenience:
+const { Vec, Mat, Mat4, Color, Light, Shape, Material, Shader, Texture, Scene } = tiny;
 
 export class Text_Line extends Shape                // Text_Line embeds text in the 3D world, using a crude texture method.  This
 {                                                   // Shape is made of a horizontal arrangement of quads. Each is textured over with
@@ -45,18 +45,18 @@ export class Text_Demo extends Scene                   // A scene with a cube, f
     { super()
       this.shapes = { cube: new defs.Cube(), text: new Text_Line( 35 ) };
       
-      this.shader = new defs.Phong_Shader();
-      this.grey       = this.shader.material({ ambient: 0, diffusivity: .3, specularity: .5, smoothness: 10 })
-                             .override( Color.of( .5,.5,.5,1 ) );
-      this.text_image = this.shader.material({ ambient: 1, diffusivity: 0, specularity: 0, texture: new Texture( "assets/text.png" ) });
+      const phong   = new defs.Phong_Shader();
+      const texture = new defs.Textured_Phong();
+      this.grey       = new Material( phong, { color: Color.of( .5,.5,.5,1 ), ambient: 0, 
+                                        diffusivity: .3, specularity: .5, smoothness: 10 })
+      this.text_image = new Material( texture, { ambient: 1, diffusivity: 0, specularity: 0,
+                                                 texture: new Texture( "assets/text.png" ) });
     }
   display( context, program_state )
     { program_state.lights = [ new Light( Vec.of( 3,2,1,0 ),   Color.of( 1,1,1,1 ),  1000000 ),
-                                new Light( Vec.of( 3,10,10,1 ), Color.of( 1,.7,.7,1 ), 100000 ) ];
-      if( !this.has_placed_camera )
-        { this.has_placed_camera = true;
-                                           // Store the desired camera and projection matrices in the shader-bound graphics state:
-          program_state.set_camera( Mat4.look_at( ...Vec.cast( [ 0,0,4 ], [0,0,0], [0,1,0] ) ) );
+                               new Light( Vec.of( 3,10,10,1 ), Color.of( 1,.7,.7,1 ), 100000 ) ];
+      if( !context.scratchpad.controls ) 
+        { program_state.set_camera( Mat4.look_at( ...Vec.cast( [ 0,0,4 ], [0,0,0], [0,1,0] ) ) );
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 500 );
         }
       const t = program_state.animation_time/1000;
@@ -72,12 +72,13 @@ export class Text_Demo extends Scene                   // A scene with a cube, f
         { var cube_side = Mat4.rotation( i == 0 ? Math.PI/2 : 0, Vec.of(1, 0, 0) )
                   .times( Mat4.rotation( Math.PI * j - ( i == 1 ? Math.PI/2 : 0 ), Vec.of( 0, 1, 0 ) ) )
                   .times( Mat4.translation([ -.9, .9, 1.01 ]) );
-          for( let line of strings[ 2*i + j ].split('\n') )
+          const multi_line_string = strings[ 2*i + j ].split('\n');
+          for( let line of multi_line_string.slice( 0,30 ) )
           { this.shapes.text.set_string( line, context.context );
             this.shapes.text.draw( context, program_state, funny_orbit.times( cube_side )
-                                                              .times( Mat4.scale([ .03,.03,.03 ])), this.text_image );
+                                                 .times( Mat4.scale([ .03,.03,.03 ])), this.text_image );
             cube_side.post_multiply( Mat4.translation([ 0,-.06,0 ]) );
-          }          
+          }
         } 
     }
 }

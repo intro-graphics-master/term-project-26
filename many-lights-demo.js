@@ -1,17 +1,17 @@
 import {tiny, defs} from './common.js';
-const { Vec, Mat, Mat4, Color, Light, 
-        Shape, Shader, Scene, Texture } = tiny;           // Pull these names into this module's scope for convenience.
-        
+                                                  // Pull these names into this module's scope for convenience:
+const { Vec, Mat, Mat4, Color, Light, Shape, Material, Shader, Texture, Scene } = tiny;
+
 export class Many_Lights_Demo extends Scene  // How to make the illusion that there are many lights, despite only passing
 { constructor()                         // two to the shader.  We re-locate the lights in between individual shape draws.
     { super();
       Object.assign( this, { rows: 20, columns: 35 } );                                       // Define how many boxes (buildings) to draw.                 
 
       this.shapes = { cube: new defs.Cube() };
-      this.shader = new defs.Fake_Bump_Map();
-      this.brick = this.shader.material({ ambient: .05, diffusivity: .5, specularity: .5, smoothness: 10, 
-                              texture: new Texture( "assets/rgb.jpg" ) })
-                              .override( Color.of( 1,1,1,1 ) );
+      const shader = new defs.Fake_Bump_Map();
+      this.brick = new Material( shader, { color: Color.of( 1,1,1,1 ),
+                                 ambient: .05, diffusivity: .5, specularity: .5, smoothness: 10, 
+                                 texture: new Texture( "assets/rgb.jpg" ) });
               
       this.box_positions = [];    this.row_lights = {};    this.column_lights = {};
       for( let row = 0; row < this.rows; row++ ) for( let column = 0; column < this.columns; column++ )   // Make initial grid of boxes
@@ -23,15 +23,14 @@ export class Many_Lights_Demo extends Scene  // How to make the illusion that th
       for( let r = 0; r < this.rows;    r++ ) this.column_lights [ ~~( r) ] = Vec.of( r, -Math.random(), -2*Math.random()*this.columns  );
     }
   display( context, program_state )
-    { if( !this.has_placed_camera ) 
-        { this.has_placed_camera = true;
-          program_state.set_camera( Mat4.look_at( ...Vec.cast( [ this.rows/2,5,5 ], [this.rows/2,0,-4], [0,1,0] ) ) );
+    { if( !context.scratchpad.controls ) 
+        { program_state.set_camera( Mat4.look_at( ...Vec.cast( [ this.rows/2,5,5 ], [this.rows/2,0,-4], [0,1,0] ) ) );
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 500 );
         }
                             // To draw each individual box, select the two lights sharing a row and column with it, and draw using those.
       this.box_positions.forEach( (p,i,a) =>
         { program_state.lights = [ new Light( this.row_lights   [ ~~p[2] ].to4(1), Color.of(  1,1,.2,1 ), 10 ),
-                                    new Light( this.column_lights[ ~~p[0] ].to4(1), Color.of( .2,.2,1,1 ), 10 )];
+                                   new Light( this.column_lights[ ~~p[0] ].to4(1), Color.of( .2,.2,1,1 ), 10 )];
           this.shapes.cube.draw( context, program_state, Mat4.translation( p ).times( Mat4.scale([ .3,1,.3 ]) ), this.brick ) // Draw the box.
         } );
       if( !program_state.animate || program_state.animation_delta_time > 500 ) return;

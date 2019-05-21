@@ -1,6 +1,7 @@
 import {tiny, defs} from './common.js';
-const { Vec, Mat, Mat4, Color, Light, 
-        Shape, Shader, Scene, Texture } = tiny;           // Pull these names into this module's scope for convenience.
+
+                                                  // Pull these names into this module's scope for convenience:
+const { Vec, Mat, Mat4, Color, Light, Shape, Material, Shader, Texture, Scene } = tiny;
 
 export class Body          // Store and update the properties of a 3D body that incrementally moves from its previous place due to velocities.
 { constructor(               shape, material, size )
@@ -90,21 +91,21 @@ export class Simulation extends Scene         // Simulation manages the stepping
 
 export class Test_Data
 { constructor()
-    { this.textures = { rgb   : new Texture( "assets/rgb.jpg"   ),
+    { this.textures = { rgb   : new Texture( "assets/rgb.jpg" ),
                         earth : new Texture( "assets/earth.gif" ),
-                        grid  : new Texture( "assets/grid.png"  ),
+                        grid  : new Texture( "assets/grid.png" ),
                         stars : new Texture( "assets/stars.png" ),
-                        text  : new Texture( "assets/text.png"  )
+                        text  : new Texture( "assets/text.png" ),
                       }
-      this.shapes = { donut  : new defs.Torus          ( 15, 15 ),
-                      cone   : new defs.Closed_Cone    ( 4, 10 ),
-                      capped : new defs.Capped_Cylinder( 4, 12 ),
-                      ball   : new defs.Subdivision_Sphere( 3 ),
+      this.shapes = { donut  : new defs.Torus          ( 15, 15, [[0,2],[0,1]] ),
+                      cone   : new defs.Closed_Cone    ( 4, 10,  [[0,2],[0,1]] ),
+                      capped : new defs.Capped_Cylinder( 4, 12,  [[0,2],[0,1]] ),
+                      ball   : new defs.Subdivision_Sphere( 3,   [[0,1],[0,1]] ),
                       cube   : new defs.Cube(),
                       axis   : new defs.Axis_Arrows(),
-                      prism  : new ( defs.Capped_Cylinder   .prototype.make_flat_shaded_version() )( 10, 10 ),
+                      prism  : new ( defs.Capped_Cylinder   .prototype.make_flat_shaded_version() )( 10, 10, [[0,2],[0,1]] ),
                       gem    : new ( defs.Subdivision_Sphere.prototype.make_flat_shaded_version() )( 2 ),
-                      donut  : new ( defs.Torus             .prototype.make_flat_shaded_version() )( 20, 20 ) 
+                      donut  : new ( defs.Torus             .prototype.make_flat_shaded_version() )( 20, 20, [[0,2],[0,1]] ),
                     }; 
     }
   random_shape( shape_list = this.shapes )
@@ -120,8 +121,9 @@ export class Inertia_Demo extends Simulation    // Demonstration: Let random ini
       this.data = new Test_Data();
       this.shapes = Object.assign( {}, this.data.shapes );
       this.shapes.square = new defs.Square();
-      this.material = new defs.Phong_Shader().material({ ambient:.4, texture: this.data.textures.stars })
-                                                       .override( Color.of( .4,.8,.4,1 ) );
+      const shader = new defs.Fake_Bump_Map( 1 );
+      this.material = new Material( shader, { color: Color.of( .4,.8,.4,1 ),
+                                  ambient:.4, texture: this.data.textures.stars })
     }
   random_color() { return this.material.override( Color.of( .6,.6*Math.random(),.6*Math.random(),1 ) ); }
   update_state( dt )
@@ -146,7 +148,7 @@ export class Inertia_Demo extends Simulation    // Demonstration: Let random ini
           program_state.set_camera( Mat4.translation([ 0,0,-50 ]) );    // Locate the camera here (inverted matrix).
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 500 );
         }
-      program_state.lights = [ new Light( Vec.of( 7,15,20,0 ), Color.of( 1,1,1,1 ), 100000 ) ];
+      program_state.lights = [ new Light( Vec.of( .7,1.5,2,0 ), Color.of( 1,1,1,1 ), 100000 ) ];
       this.shapes.square.draw( context, program_state, Mat4.translation([ 0,-10,0 ])
                                        .times( Mat4.rotation( Math.PI/2, Vec.of( 1,0,0 ) ) ).times( Mat4.scale([ 50,50,1 ]) ),
                                this.material.override( this.data.textures.earth ) );

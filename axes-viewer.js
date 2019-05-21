@@ -1,6 +1,6 @@
 import {tiny, defs} from './common.js';
-const { Vec, Mat, Mat4, Color, Light, Material,
-        Shape, Shader, Scene, Texture } = tiny;           // Pull these names into this module's scope for convenience.
+                                                  // Pull these names into this module's scope for convenience:
+const { Vec, Mat, Mat4, Color, Light, Shape, Material, Shader, Texture, Scene } = tiny;
 
 export class Axes_Viewer extends Scene     // A helper scene (a secondary Scene Component) for helping you visualize the
 { constructor()                       // coordinate bases that are used in your real scene.  Your scene can feed this
