@@ -1,6 +1,6 @@
 import {tiny, defs} from './common.js';
-const { Vec, Mat, Mat4, Color, Light, 
-        Shape, Shader, Scene, Texture } = tiny;           // Pull these names into this module's scope for convenience.
+                                                  // Pull these names into this module's scope for convenience:
+const { Vec, Mat, Mat4, Color, Light, Shape, Material, Shader, Texture, Scene } = tiny;
 
 export class Scene_To_Texture_Demo extends Scene
   { constructor()     // The scene begins by requesting the camera, shapes, and materials it will need.
@@ -17,10 +17,10 @@ export class Scene_To_Texture_Demo extends Scene
         this.scratchpad.height  = 256;                // Initial image source: Blank gif file:
         this.texture = new Texture( "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" );
 
-        this.shader = new defs.Phong_Shader();
+        const bump = new defs.Fake_Bump_Map( 1 );
         this.materials =
-          {  a: this.shader.material({ ambient: 1, texture: new Texture( "assets/rgb.jpg" ) }),
-             b: this.shader.material({ ambient: 1, texture: this.texture })
+          {  a: new Material( bump, { ambient: .5, texture: new Texture( "assets/rgb.jpg" ) }),
+             b: new Material( bump, { ambient:  1, texture: this.texture })
           }
 
         this.lights = [ new Light( Vec.of( -5,5,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];

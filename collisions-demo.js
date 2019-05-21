@@ -33,20 +33,27 @@ export class Body          // Store and update the properties of a 3D body that 
                                       .times( this.blend_rotation( alpha ) )
                                       .times( Mat4.scale( this.size ) );
     }
-  check_if_colliding( b, a_inv, shape )   // Collision detection function.
+  static intersect_cube( p, margin = 0 )
+    { return p.every( value => value >= -1 - margin && value <=  1 + margin )
+    }
+  static intersect_sphere( p, margin = 0 )
+    { return p.dot( p ) < 1 + margin;
+    }
+  check_if_colliding( b, a_inv, collider )   
+    {                                     // Collision detection function.
                                           // DISCLAIMER:  The collision method shown below is not used by anyone; it's just very quick 
                                           // to code.  Making every collision body an ellipsoid is kind of a hack, and looping 
                                           // through a list of discrete sphere points to see if the ellipsoids intersect is *really* a 
                                           // hack (there are perfectly good analytic expressions that can test if two ellipsoids 
                                           // intersect without discretizing them into points).
-    { if ( this == b ) return false;      // Nothing collides with itself.
+      if ( this == b ) return false;      // Nothing collides with itself.
       var T = a_inv.times( b.drawn_location );                      // Convert sphere b to the frame where a is a unit sphere.
-      for( let p of shape.arrays.position )                         // For each vertex in that b,
-        { var Tp = T.times( p.to4(1) ).to3();                       // Shift to the coordinate frame of a_inv*b
-          if( Tp.dot( Tp ) < 1.1 )                                  // Check if in that coordinate frame it penetrates the unit sphere
-            return true;                                            // at the origin.  Leave .1 of leeway.     
-        }
-      return false;
+
+      const { intersect_test, points, leeway } = collider;
+                                          // For each vertex in that b, shift to the coordinate frame of
+                                          // a_inv*b.  Check if in that coordinate frame it penetrates 
+                                          // the unit sphere at the origin.  Leave some leeway.
+      return points.arrays.position.some( p => intersect_test( T.times( p.to4(1) ).to3(), leeway ) );
     }
 }
 
@@ -102,7 +109,6 @@ export class Test_Data
                       capped : new defs.Capped_Cylinder( 4, 12,  [[0,2],[0,1]] ),
                       ball   : new defs.Subdivision_Sphere( 3,   [[0,1],[0,1]] ),
                       cube   : new defs.Cube(),
-                      axis   : new defs.Axis_Arrows(),
                       prism  : new ( defs.Capped_Cylinder   .prototype.make_flat_shaded_version() )( 10, 10, [[0,2],[0,1]] ),
                       gem    : new ( defs.Subdivision_Sphere.prototype.make_flat_shaded_version() )( 2 ),
                       donut  : new ( defs.Torus             .prototype.make_flat_shaded_version() )( 20, 20, [[0,2],[0,1]] ),
@@ -167,13 +173,23 @@ export class Collision_Demo extends Simulation    // Demonstration: Detect when 
     { super();
       this.data = new Test_Data();
       this.shapes = Object.assign( {}, this.data.shapes );
-      this.collider = new defs.Subdivision_Sphere(1);        // Make a simpler dummy shape for representing all other shapes during collisions.
+          // Make a simpler dummy shape for representing all other shapes during collisions:
+      this.colliders = [
+        { intersect_test: Body.intersect_sphere, points: new defs.Subdivision_Sphere(1), leeway: .5 },
+        { intersect_test: Body.intersect_cube,   points: new defs.Cube(),                leeway: .1 }
+                       ];
+      this.collider_selection = 0;
 
-      this.shader = new defs.Phong_Shader();
-      this.inactive_color = this.shader.material({ ambient: .2, texture: this.data.textures.rgb })
-                                              .override( Color.of( .5,.5,.5,1 ) );
+      const phong = new defs.Phong_Shader ( 1 );
+      const bump  = new defs.Fake_Bump_Map( 1 )
+      this.inactive_color = new Material( bump, { color: Color.of( .5,.5,.5,1 ), ambient: .2,
+                                           texture: this.data.textures.rgb });
       this.active_color = this.inactive_color.override( { color: Color.of( .5,0,0,1 ), ambient: .5 } );
-      this.transparent = this.shader.material({ ambient: .4 }).override( Color.of( 1,0,1,.1 ) );
+      this.transparent = new Material( phong, { color: Color.of( 1,0,1,.1 ), ambient: .4 });
+    }
+  make_control_panel()
+    { super.make_control_panel();
+      this.key_triggered_button( "Switch collider", [ "c" ], function() { this.collider_selection ^= 1 } );
     }
   update_state( dt, num_bodies = 40 )                                                            
     { if   ( this.bodies.length > num_bodies )  this.bodies = this.bodies.splice( 0, num_bodies );                // Max of 20 bodies
@@ -185,7 +201,8 @@ export class Collision_Demo extends Simulation    // Demonstration: Detect when 
 
                                       // Sometimes we delete some so they can re-generate as new ones:                            
       this.bodies = this.bodies.filter( b => ( Math.random() > .01 ) || b.linear_velocity.norm() > 1 );  
-      
+      const collider = this.colliders[ this.collider_selection ];
+
       for( let b of this.bodies )
         { var b_inv = Mat4.inverse( b.drawn_location );           // Cache this quantity to save time.
 
@@ -193,12 +210,15 @@ export class Collision_Demo extends Simulation    // Demonstration: Detect when 
           b.material = this.inactive_color;       // Default color: white
 
           for( let c of this.bodies )                                      // *** Collision process starts here ***
-                                              // Pass the two bodies and the collision shape to check_if_colliding():
-            if( b.linear_velocity.norm() > 0 && b.check_if_colliding( c, b_inv, this.collider ) )
-            { b.material = this.active_color;                          // If we get here, we collided, so turn red.
-              b.linear_velocity  = Vec.of( 0,0,0 );                    // Zero out the velocity so they don't inter-penetrate any further.
-              b.angular_velocity = 0;
-            }
+          { if( b.linear_velocity.norm() <= 0 )
+              continue;
+                            // Pass the two bodies and the collision shape to check_if_colliding():
+            if( !b.check_if_colliding( c, b_inv, collider ) )
+              continue;
+            b.material = this.active_color;                          // If we get here, we collided, so turn red.
+            b.linear_velocity  = Vec.of( 0,0,0 );                    // Zero out the velocity so they don't inter-penetrate any further.
+            b.angular_velocity = 0;
+          }
         }
     }
   display( context, program_state )           
@@ -209,9 +229,11 @@ export class Collision_Demo extends Simulation    // Demonstration: Detect when 
           program_state.set_camera( Mat4.translation([ 0,0,-50 ]) );    // Locate the camera here (inverted matrix).
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 500 );
         }
-      program_state.lights = [ new Light( Vec.of( 7,15,20,0 ), Color.of( 1,1,1,1 ), 100000 ) ];
+      program_state.lights = [ new Light( Vec.of( .7,1.5,2,0 ), Color.of( 1,1,1,1 ), 100000 ) ];
+      const { points, leeway } = this.colliders[ this.collider_selection ];
+      const size = new Vec(3).fill( 1 + leeway );
       for( let b of this.bodies )
-        this.data.shapes.ball.draw( context, program_state, b.drawn_location.times( Mat4.scale([ 1.1,1.1,1.1 ]) ), this.transparent );
+        points.draw( context, program_state, b.drawn_location.times( Mat4.scale( size ) ), this.transparent );
     }
   show_explanation( document_element )
     { document_element.innerHTML += `<p>This demo detects when some flying objects collide with one another, coloring them red when they do.  For a simpler demo that shows physics-based movement without objects that hit one another, see the demo called <a href=\"https://174a.glitch.me/Inertia_Demo\" target=\"blank\">Inertia_Demo</a>.

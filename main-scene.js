@@ -17,30 +17,33 @@ import { Inertia_Demo, Collision_Demo }
   from "./collisions-demo.js"
 import { Many_Lights_Demo }
   from "./many-lights-demo.js"
+import { Nesting_Test }
+  from './nesting-test.js'
 import { Obj_File_Demo }
   from "./obj-file-demo.js"
 import { Scene_To_Texture_Demo }
   from "./scene-to-texture-demo.js"
 import { Text_Demo }
-  from "./text-demo.js"  
-import { Nesting_Test }
-  from './nesting-test.js';
+  from "./text-demo.js"  ;
+import { Transforms_Sandbox } 
+  from "./transforms-sandbox.js"
 
 Object.assign( defs,
                      { Axes_Viewer, Axes_Viewer_Test_Scene },
                      { Inertia_Demo, Collision_Demo },
                      { Many_Lights_Demo },
+                     { Nesting_Test },
                      { Obj_File_Demo },
                      { Scene_To_Texture_Demo },
                      { Text_Demo },
-                     { Nesting_Test } );
+                     { Transforms_Sandbox } );
 
 
     // ******************** End extra step
 
 // (Can define Main_Scene's class here)
 
-const Main_Scene = Inertia_Demo;
+const Main_Scene = Collision_Demo;
 const Additional_Scenes = [];
 
 export { Main_Scene, Additional_Scenes, Canvas_Widget, Code_Widget, Text_Widget, defs }
