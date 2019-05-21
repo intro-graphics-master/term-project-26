@@ -25,16 +25,31 @@ class Surfaces_Demo extends Scene
     { super();
       this.scene_id = scene_id;
 
-      
+      [ this.scene_1 ][ scene_id ] ();
     }
+  scene_1()
+    { const row_operation = p => Mat4.translation([ 0,-1,0 ]).times(p.to4(1)).to3();
+      const column_operation = (j,p) => Mat4.translation([ 1,0,0 ]).times(p.to4(1)).to3();
+      this.shapes = { sheet: new defs.Grid_Patch( 10, 10, row_operation, column_operation ) };
 
+      const textured = new defs.Textured_Phong( 1 );
+      this.material = new Material( textured, { ambient: .5, texture: new Texture( "assets/rgb.jpg" ) } );
+    }
+  display( context, program_state )
+    { if( !context.scratchpad.controls ) 
+        { this.children.push( context.scratchpad.controls = new defs.Movement_Controls() );
+          program_state.set_camera( Mat4.translation([ 0,0,-10 ]) );
+          program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 100 );
+        }
+      this.shapes.sheet.draw( context, program_state, Mat4.identity(), this.material );
+    }
 }
   
 export class Nesting_Test extends Transforms_Sandbox
   { constructor()
       { super();
         
-        this.test_scene = new Scene_To_Texture_Demo();
+        this.test_scene = new Surfaces_Demo( 0 );
       }
     show_explanation( document_element, webgl_manager )
       { document_element.style.padding = 0;
