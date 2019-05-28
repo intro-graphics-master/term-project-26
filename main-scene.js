@@ -35,6 +35,8 @@ const Main_Scene =
       // Same thing, but with a trick to make the textures 
       // seemingly interact with the lights:
       const texture_shader_2 = new defs.Fake_Bump_Map(2);
+      // Custom shader
+      const custom_shader = new defs.Custom_Shader(2);
 
       // *** Materials: *** wrap a dictionary of "options" for a shader.
 

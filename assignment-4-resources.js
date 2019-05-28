@@ -347,6 +347,52 @@ class Funny_Shader extends Shader
     }
 }
 
+const Custom_Shader = defs.Custom_Shader =
+class Custom_Shader extends Shader
+{
+  shared_glsl_code()            // ********* SHARED CODE, INCLUDED IN BOTH SHADERS *********
+    { return `
+    
+      `;
+    }
+  vertex_glsl_code()           // ********* VERTEX SHADER *********
+    { return this.shared_glsl_code() + `
+        attribute vec3 aPosition;
+        attribute vec2 aUv0;
+        
+        uniform mat4 matrix_model;
+        uniform mat4 matrix_viewProjection;
+        
+        varying vec2 vUv0;
+        
+        void main(void)
+        {
+            vUv0 = aUv0;
+            gl_Position = matrix_viewProjection * matrix_model * vec4(aPosition, 1.0);
+        }`;
+    }
+  fragment_glsl_code()           // ********* FRAGMENT SHADER *********
+    { return this.shared_glsl_code() + `
+        varying vec2 vUv0;
+
+        uniform sampler2D uDiffuseMap;
+        uniform sampler2D uHeightMap;
+        uniform float uTime;
+        
+        void main(void)
+        {
+            float height = texture2D(uHeightMap, vUv0).r;
+            vec4 color = texture2D(uDiffuseMap, vUv0);
+            if (height < uTime) {
+              discard;
+            }
+            if (height < (uTime+0.04)) {
+              color = vec4(0, 0.2, 1, 1.0);
+            }
+            gl_FragColor = color;
+        }`;
+    }
+}
 
 const Phong_Shader = defs.Phong_Shader =
 class Phong_Shader extends Shader
