@@ -134,6 +134,8 @@ const Main_Scene =
       // ***** BEGIN TEST SCENE *****
       model_transform = Mat4.identity();
       this.shapes.box.draw(context, program_state, model_transform, this.materials.spiderman);
+      //model_transform = model_transform.times( Mat4.translation([2, 0, 0]));
+      //this.shapes.box.draw(context, program_state, model_transform, this.materials.plastic);
       // ***** END TEST SCENE *****
     }
   }
