@@ -41,10 +41,10 @@ const Main_Scene =
       // *** Materials: *** wrap a dictionary of "options" for a shader.
 
       this.materials = {
-        spiderman: new Material(custom_shader,
+        spiderman: new Material(texture_shader_2,
           {
             texture: new Texture("assets/spiderman.jpg"),
-            ambient: 0.3, diffusivity: 1, specularity: 1, color: Color.of(1, 1, 1, 1)}),
+            ambient: 1, diffusivity: 1, specularity: 0, color: Color.of(.4, .4, .4, 1)}),
         plastic: new Material(phong_shader,
           { ambient: 1, diffusivity: 0, specularity: 0, color: Color.of(1, .5, 1, 1) }),
         plastic_stars: new Material(texture_shader_2,
@@ -58,7 +58,11 @@ const Main_Scene =
           {
             texture: new Texture("assets/earth.gif"),
             ambient: 0, diffusivity: 1, specularity: 1, color: Color.of(.4, .4, .4, 1)
-          })
+          }),
+        planet_3: new Material( texture_shader_2,    
+          { texture: new Texture( "assets/earth.gif" ),
+            ambient: 1, diffusivity: 1, specularity: 0, color: Color.of( .4,.4,.4,1 )
+          } ),
       };
 
       // Some setup code that tracks whether the "lights are on" (the stars), and also
