@@ -8,6 +8,25 @@ var t_snap_time = undefined;
 // Now we have loaded everything in the files tiny-graphics.js, tiny-graphics-widgets.js, and assignment-4-resources.js.
 // This yielded "tiny", an object wrapping the stuff in the first two files, and "defs" for wrapping all the rest.
 
+const Box = defs.Box =
+class Box {
+  constructor(color, transform, slope) {
+      this.color = color;
+      this.transform = transform;
+      this.slope = slope;
+  }
+  
+}
+
+var box_array = [[[]]]; //depth, row, column
+for(let i = 0; i < 3; i++) {
+    for(let j = 0; j < 10; j++) {
+        for(let k = 0; k < 6; k++) {
+            
+        }
+    }
+}
+
 // (Can define Main_Scene's class here)
 
 const Main_Scene =
