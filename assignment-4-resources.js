@@ -547,7 +547,6 @@ class Textured_Phong extends Phong_Shader
     }
 }
 
-
 const Fake_Bump_Map = defs.Fake_Bump_Map =
 class Fake_Bump_Map extends Textured_Phong
 {                                // **Fake_Bump_Map** Same as Phong_Shader, except adds a line of code to
@@ -559,8 +558,39 @@ class Fake_Bump_Map extends Textured_Phong
         uniform sampler2D texture;
 
         void main()
-          {                                                          // Sample the texture image in the correct place:
+          { 
+            vec3 E = normalize( camera_center - vertex_worldspace );
+
+                                                                   // Sample the texture image in the correct place:
             vec4 tex_color = texture2D( texture, f_tex_coord );
+            if( tex_color.w < .01 ) discard;
+                             // Slightly disturb normals based on sampling the same image that was used for texturing:
+            vec3 bumped_N  = N + tex_color.rgb - .5*vec3(1,1,1);
+                                                                     // Compute an initial (ambient) color:
+            gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
+                                                                     // Compute the final color with contributions from lights:
+            gl_FragColor.xyz += phong_model_lights( normalize( bumped_N ), vertex_worldspace );
+          } ` ;
+    }
+}
+
+
+const Sky_Box = defs.Sky_Box =
+class Sky_Box extends Textured_Phong
+{                                // **Fake_Bump_Map** Same as Phong_Shader, except adds a line of code to
+                                 // compute a new normal vector, perturbed according to texture color.
+  fragment_glsl_code()
+    {                            // ********* FRAGMENT SHADER ********* 
+      return this.shared_glsl_code() + `
+        varying vec2 f_tex_coord;
+        uniform sampler2D texture;
+
+        void main()
+          { 
+            vec3 E = normalize( camera_center - vertex_worldspace );
+
+                                                                   // Sample the texture image in the correct place:
+            vec4 tex_color = texture2D( texture, .5 * vec2( E ) + vec2( .5 ) );
             if( tex_color.w < .01 ) discard;
                              // Slightly disturb normals based on sampling the same image that was used for texturing:
             vec3 bumped_N  = N + tex_color.rgb - .5*vec3(1,1,1);
@@ -739,5 +769,63 @@ class Movement_Controls extends Scene
                                      // Log some values:
       this.pos    = this.inverse().times( Vec.of( 0,0,0,1 ) );
       this.z_axis = this.inverse().times( Vec.of( 0,0,1,0 ) );
+    }
+}
+
+
+
+///ADDED BELOW
+
+const Cube_Map = defs.Cube_Map =
+class Cube_Map extends Textured_Phong
+{                                
+
+  vertex_glsl_code()           // ********* VERTEX SHADER *********
+    { return this.shared_glsl_code() + `
+        attribute vec4 a_position;
+        
+
+        uniform mat4 u_matrix;
+        varying vec3 v_normal;
+
+        void main()
+          {
+            //multiply the position by the matrix
+            gl_Position = u_matrix * a_position;
+
+            //pass a normal 
+            //centered around the origin so we can just pass the position
+            v_normal = normalize(a_position.xyz);                                                                 
+          } ` ;
+    }
+
+
+  fragment_glsl_code()
+    {                            // ********* FRAGMENT SHADER ********* 
+        return this.shared_glsl_code() + `
+        
+        precision mediump float;
+
+        //passed in from the vertex shader.
+        varying vec3 v_normal;
+
+        //the texture 
+        uniform samplerCube u_texture;
+
+        void main()
+          {
+            gl_FragColor = textureCube(u_texture, normalize(v_normal)); 
+
+          } ` ;
+    }
+
+    send_material( gl, gpu, material )
+    {                                       // send_material(): Send the desired shape-wide material qualities to the
+                                            // graphics card, where they will tweak the Phong lighting formula.                                      
+      gl.uniform4fv( gpu.shape_color,    material.color       );
+      gl.uniform1f ( gpu.ambient,        material.ambient     );
+      gl.uniform1f ( gpu.diffusivity,    material.diffusivity );
+      gl.uniform1f ( gpu.specularity,    material.specularity );
+      gl.uniform1f ( gpu.smoothness,     material.smoothness  );
     }
 }
