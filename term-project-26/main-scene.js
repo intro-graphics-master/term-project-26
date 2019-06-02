@@ -10,7 +10,7 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 // (Can define Main_Scene's class here)
 
 const Main_Scene =
-  class Solar_System extends Scene {
+  class I_am_Inevitable extends Scene {
     constructor() { // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
       super();
       // At the beginning of our program, load one of each of these shape 
@@ -40,24 +40,10 @@ const Main_Scene =
       // *** Materials: *** wrap a dictionary of "options" for a shader.
 
       this.materials = {
-//         spiderman: new Material(texture_shader_2,
-//           {
-//             texture: new Texture("assets/spiderman.jpg"),
-//             ambient: 0, diffusivity: 1, specularity: 0, color: Color.of(1, 1, 1, 1)}),
         plastic: new Material(phong_shader,
           { ambient: 1, diffusivity: 0, specularity: 0, color: Color.of(1, .5, 1, 1) }),
-//         plastic_stars: new Material(texture_shader_2,
-//           {
-//             texture: new Texture("assets/stars.png"),
-//             ambient: 0, diffusivity: 1, specularity: 0, color: Color.of(.4, .4, .4, 1)
-//           }),
         metal: new Material(phong_shader,
           { ambient: 0, diffusivity: 1, specularity: 1, color: Color.of(1, .5, 1, 1) }),
-//         metal_earth: new Material(texture_shader_2,
-//           {
-//             texture: new Texture("assets/earth.gif"),
-//             ambient: 0, diffusivity: 1, specularity: 1, color: Color.of(.4, .4, .4, 1)
-//           }),
           down: new Material(sky_box, 
           {
               texture: new Texture("assets/down.jpg"),
@@ -93,7 +79,7 @@ const Main_Scene =
 
       // Some setup code that tracks whether the "lights are on" (the stars), and also
       // stores 30 random location matrices for drawing stars behind the solar system:
-      this.lights_on = false;
+      this.snap_on = false;
       this.star_matrices = [];
       for (let i = 0; i < 30; i++)
         this.star_matrices.push(Mat4.rotation(Math.PI / 2 * (Math.random() - .5), Vec.of(0, 1, 0))
@@ -102,7 +88,7 @@ const Main_Scene =
     }
     make_control_panel() {  // make_control_panel(): Sets up a panel of interactive HTML elements, including
       // buttons with key bindings for affecting this scene, and live info readouts.
-
+      this.key_triggered_button("Snap", ["`"], () => this.snap_on = true);
     }
     display(context, program_state) {                                                // display():  Called once per frame of animation.  For each shape that you want to
       // appear onscreen, place a .draw() call for it inside.  Each time, pass in a
@@ -152,12 +138,14 @@ const Main_Scene =
       Start coding down here!!!!
       **********************************/
 
-      const blue = Color.of(0, 0, .5, 1);
-      const yellow = Color.of(.5, .5, 0, 1);
-      const teal = Color.of(0, 0.545098, 0.545098, 1);
-      const pink = Color.of(1, 0.411765, 0.705882, 1);
-      const green = Color.of(0.564706, 0.933333, 0.564706, 1);
-      const purple = Color.of(0.580392, 0, 0.827451, 1);
+      //colors
+      const red = Color.of(1, 0, 0, 1);
+      const blue = Color.of(0, 0, 1, 1);
+      const black = Color.of(0, 0, 0, 1);
+      const white = Color.of(1, 0.980392, 0.980392, 1); 
+
+
+      
 
       // Variable model_transform will be a local matrix value that helps us position shapes.
       // It starts over as the identity every single frame - coordinate axes at the origin.
@@ -168,6 +156,7 @@ const Main_Scene =
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of( 1,1,1,1 ), 100000 ) ];
       
 
+      /// *********  BACKGROUND SCENE *********
       //Create a scene
       let sky_transform = Mat4.identity();
       let sky_stack = [sky_transform];
@@ -176,14 +165,14 @@ const Main_Scene =
       //floor
       sky_transform = sky_transform.times(Mat4.translation([0, -50, 0]));
       sky_transform = sky_transform.times(Mat4.scale(Vec.of(50,0.2,50)));
-      this.shapes.box.draw(context, program_state, sky_transform, this.materials.down); //teal
+      this.shapes.box.draw(context, program_state, sky_transform, this.materials.down); 
 
       //ceiling
       sky_transform = sky_stack.pop();
       sky_stack.push(sky_transform);
       sky_transform = sky_transform.times(Mat4.translation([0, 50, 0]));
       sky_transform = sky_transform.times(Mat4.scale(Vec.of(50,0.2,50)));
-      this.shapes.box.draw(context, program_state, sky_transform, this.materials.up ); //blue
+      this.shapes.box.draw(context, program_state, sky_transform, this.materials.up ); 
 
       //right wall 
       sky_transform = sky_stack.pop();
@@ -213,9 +202,1394 @@ const Main_Scene =
       sky_transform = sky_transform.times(Mat4.scale(Vec.of(50,50,0.2)));
       this.shapes.box.draw(context, program_state, sky_transform, this.materials.front );
 
+      /// ********* END BACKGROUND SCENE *********
+
+      let spiderman_transform = Mat4.identity(); 
+      spiderman_transform = spiderman_transform.times(Mat4.translation([0, -10, -5])); ///
+/// ********* BODY *********    
+      let body_transform = spiderman_transform.times(Mat4.translation([0,0,-10]));
+      let body_stack = [body_transform];
+      body_stack.push(body_transform); 
+  ///FIRST LAYER 
+      //first row 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 4.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+
+      for (let i = 0; i < 6; i++) 
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      body_transform = body_stack.pop();
+      body_transform = body_transform.times(Mat4.translation([1,0,0]));
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+
+      //second row
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); //body center
+      body_transform = body_transform.times(Mat4.translation([-3.5, 3.5, -0.5]));
+      body_stack.push(body_transform); //first cube center
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      //third row
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 2.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 1 || i == 4)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+     
+      }
+
+      //fourth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 1.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 0 || i == 1 || i == 4 || i == 5)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 2 || i == 3)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //fifth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 0.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 0 || i == 5 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 1 || i == 2 || i == 3 || i == 4)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //sixth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -0.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 1 || i == 4 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 2 || i == 3 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //seventh row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -1.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override(red ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      //eighth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -2.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 6 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+      }
+
+      //ninth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -3.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 2 || i == 3 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //tenth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -4.5, -0.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override(blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      }
+
+  ///SECOND LAYER
+      body_stack.pop();
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform);
+      //first row 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 4.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+
+      for (let i = 0; i < 6; i++) 
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      body_transform = body_stack.pop();
+      body_transform = body_transform.times(Mat4.translation([1,0,0]));
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+
+      //second row
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); //body center
+      body_transform = body_transform.times(Mat4.translation([-3.5, 3.5, -1.5]));
+      body_stack.push(body_transform); //first cube center
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      //third row
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 2.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 1 || i == 4)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+     
+      }
+
+      //fourth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 1.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 0 || i == 1 || i == 4 || i == 5)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 2 || i == 3)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //fifth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 0.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 0 || i == 5 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 1 || i == 2 || i == 3 || i == 4)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //sixth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -0.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 1 || i == 4 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 2 || i == 3 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //seventh row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -1.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override(red ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      //eighth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -2.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 6 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+      }
+
+      //ninth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -3.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 2 || i == 3 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //tenth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -4.5, -1.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override(blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      }
+
+  ///THIRD LAYER
+      body_stack.pop();
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform);
+      //first row 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 4.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+
+      for (let i = 0; i < 6; i++) 
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      body_transform = body_stack.pop();
+      body_transform = body_transform.times(Mat4.translation([1,0,0]));
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+
+      //second row
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); //body center
+      body_transform = body_transform.times(Mat4.translation([-3.5, 3.5, -2.5]));
+      body_stack.push(body_transform); //first cube center
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      //third row
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 2.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 1 || i == 4)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+     
+      }
+
+      //fourth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 1.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 0 || i == 1 || i == 4 || i == 5)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 2 || i == 3)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //fifth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, 0.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 0 || i == 5 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 1 || i == 2 || i == 3 || i == 4)
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //sixth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -0.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 1 || i == 4 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else if (i == 2 || i == 3 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //seventh row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -1.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override(red ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+      }
+
+      //eighth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -2.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 6 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+      }
+
+      //ninth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -3.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          if (i == 2 || i == 3 )
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+          }
+          else
+          {
+              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+          }
+      }
+
+      //tenth row 
+      body_stack.pop(); //removing last cube center 
+      body_transform = body_stack.pop();
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.translation([-3.5, -4.5, -2.5]));
+      body_stack.push(body_transform); 
+      body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override(blue ));
+      for (let i = 0; i < 7; i++)
+      {
+          body_transform = body_stack.pop();
+          body_transform = body_transform.times(Mat4.translation([1,0,0]));
+          body_stack.push(body_transform); //prev cube center
+          body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+      }
+/// ********* END BODY *********    
+
+
+/// ********* HEAD *********   
+  //LAYER 1 
+      let head_transform = spiderman_transform.times(Mat4.translation([0,0,-10])); 
+      head_transform = head_transform.times(Mat4.translation([0, 5.5, 0])); //neck
+      let head_stack = [head_transform];
+      head_stack.push(head_transform);
+
+      //row 1 
+      head_transform = head_transform.times(Mat4.translation([-0.5, 0, -0.5]));
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      head_transform = head_stack.pop();
+      head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+
+      //row 2 
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.translation([-1.5, 1, -0.5]));
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 3; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 3
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 2, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 4 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 3, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            
+            if (i == 2 || i == 3 || i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+      }
+
+      //row 5
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 4, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            
+            if (i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+            else if (i == 2 || i == 3)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+
+            }
+      }
+
+      //row 6
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 5, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            if (i == 2 || i == 3)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+            }
+      }
+
+      //row 7 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 6, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            if (i == 2 || i == 3)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else if (i == 0 || i == 5 || i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+      }
+
+      //row 8 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 7, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            if (i == 0 || i == 5 || i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+      }
+
+      //row 9 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 8, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 10 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-1.5, 9, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+
+      for (let i = 0; i < 3; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+      head_stack.pop();
+  //LAYER 2
+      head_transform = head_stack.pop();
+      head_transform = head_transform.times(Mat4.translation([0, 0, -1]));
+      head_stack.push(head_transform);
+
+      //row 1 
+      head_transform = head_transform.times(Mat4.translation([-0.5, 0, -0.5]));
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      head_transform = head_stack.pop();
+      head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+
+      //row 2 
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.translation([-1.5, 1, -0.5]));
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 3; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 3
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 2, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 4 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 3, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            
+            if (i == 2 || i == 3 || i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+      }
+
+      //row 5
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 4, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            
+            if (i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+            else if (i == 2 || i == 3)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+
+            }
+      }
+
+      //row 6
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 5, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            if (i == 2 || i == 3)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else if (i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+            }
+      }
+
+      //row 7 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 6, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            if (i == 2 || i == 3)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+            else if (i == 0 || i == 5)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( white ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+      }
+
+      //row 8 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 7, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            if (i == 0 || i == 5 || i == 6)
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+            }
+            else
+            {
+                  this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+            }
+      }
+
+      //row 9 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 8, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 10 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-1.5, 9, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+
+      for (let i = 0; i < 3; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+      head_stack.pop();
+
+  //LAYER 3
+      head_transform = head_stack.pop();
+      head_transform = head_transform.times(Mat4.translation([0, 0, -1]));
+      head_stack.push(head_transform);
+
+      //row 1 
+      head_transform = head_transform.times(Mat4.translation([-0.5, 0, -0.5]));
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      head_transform = head_stack.pop();
+      head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+
+      //row 2 
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.translation([-1.5, 1, -0.5]));
+      head_stack.push(head_transform);
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 3; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 3
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 2, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 4 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 3, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 5
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform); 
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 4, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));        
+      }
+
+      //row 6
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 5, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 7 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 6, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 8 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 7, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 9 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-3.5, 8, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      for (let i = 0; i < 7; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+      //row 10 
+      head_stack.pop();
+      head_transform = head_stack.pop();
+      head_stack.push(head_transform);
+
+      head_transform = head_transform.times(Mat4.translation([-1.5, 9, -0.5]));
+      head_stack.push(head_transform); 
+      head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+
+      for (let i = 0; i < 3; i++)
+      {
+            head_transform = head_stack.pop();
+            head_transform = head_transform.times(Mat4.translation([1, 0, 0]));
+            head_stack.push(head_transform);
+            head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+            this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       
-      /// ***** END TEST SCENE *****
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
+   
   }
 
 const Additional_Scenes = [];
@@ -279,6 +1653,3 @@ const Planar_Star = defs.Planar_Star =
       this.arrays.normal = this.arrays.position.map(p => Vec.of(0, 0, -1));
     }
   }
-
-
-
