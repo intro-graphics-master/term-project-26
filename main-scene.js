@@ -4,6 +4,7 @@ const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
   Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
 const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
+var t_snap_time = undefined;
 // Now we have loaded everything in the files tiny-graphics.js, tiny-graphics-widgets.js, and assignment-4-resources.js.
 // This yielded "tiny", an object wrapping the stuff in the first two files, and "defs" for wrapping all the rest.
 
@@ -115,7 +116,11 @@ const Main_Scene =
       // Find how much time has passed in seconds; we can use
       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
-
+      function slope_decider() { //Function used to decide slope for moving blocks
+        var max = 1; //TODO: Tune this
+        var min = 0; //TODO: Tune this
+        return (Math.floor(Math.random() * (max - min)) + min); 
+      }
       // Have to reset this for each frame:
       this.camera_teleporter.cameras = [];
       this.camera_teleporter.cameras.push(Mat4.look_at(Vec.of(0, 10, 20), Vec.of(0, 0, 0), Vec.of(0, 1, 0)));

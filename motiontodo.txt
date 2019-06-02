@@ -1,0 +1,15 @@
+How to get this motion making bread in 3 simple steps
+
+Step 1: Add sine motion
+    Decide motion
+    How do we store variables for each block?
+    Tune variable max and min
+
+Step 2: Add shrinkage
+    Determine maximum shrinkage to not draw cube anymore
+    Tune shrink time
+
+Step 3: Add color gradient
+    Find that nice shade of brown that all the characters turn into
+    Write a function which takes in a color and a time. Returns a ratio between
+    the color and the brown using t as a gradient.
