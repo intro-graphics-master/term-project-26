@@ -120,11 +120,35 @@ const Main_Scene =
       Start coding down here!!!!
       **********************************/
 
-      const blue = Color.of(0, 0, .5, 1), yellow = Color.of(.5, .5, 0, 1);
+      /********************
+      REAL SHIT STARTS HERE
+      ********************/
+
+      //TODO: Add time variable t, needs to begin incrementing when this.is_snap is true and stay at 0 when false
+
+      //TODO: Use set of for loops to build model
+      let model_transform = Mat4.identity();  
+      //TODO: Build head_transform
+      //TODO: Build body_transform
+      //TODO: Build left_arm_transform
+      //TODO: Build right_arm_transform
+      //TODO: Build left_leg_transform
+      //TODO: Build right_leg_transform
+
+      //When this.is_snap is true, have each function move along a function and shrink using transforms and scales
+      //TODO: Find a size to delete the "particle" to ease GPU load
+      //TODO: Determine time to disappear completely
+      const time_to_disappear = 0; //Determines the time it takes for a shape to be deleted
+      function movement_function (a, b, w) {
+        //TODO: Set function probably a sin wave
+      }
+      //Use x-value to determine offset for t
+      //Values with a higher x-value will disappear first, while lower (most negative) will disappear at the end
+      //TODO: Add audio once a certain t value is reached
+      const time_to_audio = 0;
 
       // Variable model_transform will be a local matrix value that helps us position shapes.
-      // It starts over as the identity every single frame - coordinate axes at the origin.
-      let model_transform = Mat4.identity();       
+      // It starts over as the identity every single frame - coordinate axes at the origin.     
 
       // *** Lights: *** Values of vector or point lights.  They'll be consulted by 
       // the shader when coloring shapes.  See Light's class definition for inputs.
