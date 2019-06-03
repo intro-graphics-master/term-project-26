@@ -10,11 +10,32 @@ var t_snap_time = undefined;
 
 const Box = defs.Box =
 class Box {
-  constructor(color, slope) {
+  constructor(color, transform, slope) {
       this.color = color;
+      this.transform = transform;
       this.slope = slope;
   }
+  
 }
+
+// body_transform = body_transform.times(Mat4.scale([0.5, 0.5, 0.5]));
+// let body_stack = [body_transform];
+// body_stack.push(body_transform); 
+// ///FIRST LAYER 
+// //first row 
+// body_transform = body_transform.times(Mat4.translation([-3.5, 4.5, -0.5]));
+// body_stack.push(body_transform); 
+// body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+// this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( blue ));
+
+// for (let i = 0; i < 6; i++) 
+// {
+//     body_transform = body_stack.pop();
+//     body_transform = body_transform.times(Mat4.translation([1,0,0]));
+//     body_stack.push(body_transform); //prev cube center
+//     body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+//     this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
+// }
 
 
 let spiderman_transform = Mat4.identity();
@@ -24,7 +45,7 @@ var box_array = [[[]]]; //depth, row, column
 for(let x = 0; x < 6; i++) {
     for(let y = 0; y < 10; j++) {
         for(let z = 0; z < 3; k++) {
-            box_array[x][y][z] = new Box(red, 0.5);
+            box_array[x][y][z] = new Box(red, body_transform.times(Mat4.translation([x, y, z])), 0.5);
         }
     }
 }
