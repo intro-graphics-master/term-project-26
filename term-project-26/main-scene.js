@@ -726,15 +726,7 @@ const Main_Scene =
           body_transform = body_transform.times(Mat4.translation([1,0,0]));
           body_stack.push(body_transform); //prev cube center
           body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-          if (i == 1 || i == 4)
-          {
-              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
-          }
-          else
-          {
-              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
-          }
-     
+          this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
       }
 
       //fourth row 
@@ -751,13 +743,9 @@ const Main_Scene =
           body_transform = body_transform.times(Mat4.translation([1,0,0]));
           body_stack.push(body_transform); //prev cube center
           body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-          if (i == 0 || i == 1 || i == 4 || i == 5)
+          if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5)
           {
               this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
-          }
-          else if (i == 2 || i == 3)
-          {
-              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
           }
           else
           {
@@ -779,13 +767,9 @@ const Main_Scene =
           body_transform = body_transform.times(Mat4.translation([1,0,0]));
           body_stack.push(body_transform); //prev cube center
           body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-          if (i == 0 || i == 5 )
+          if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5)
           {
               this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
-          }
-          else if (i == 1 || i == 2 || i == 3 || i == 4)
-          {
-              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
           }
           else
           {
@@ -807,13 +791,9 @@ const Main_Scene =
           body_transform = body_transform.times(Mat4.translation([1,0,0]));
           body_stack.push(body_transform); //prev cube center
           body_transform = body_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-          if (i == 1 || i == 4 )
+          if (i == 1 || i == 4 || i == 2 || i == 3)
           {
               this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( red ));
-          }
-          else if (i == 2 || i == 3 )
-          {
-              this.shapes.box.draw(context, program_state, body_transform, this.materials.plastic.override( black ));
           }
           else
           {
@@ -1443,7 +1423,7 @@ const Main_Scene =
       head_transform = head_transform.times(Mat4.translation([-3.5, 4, -0.5]));
       head_stack.push(head_transform); 
       head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
       for (let i = 0; i < 7; i++)
       {
             head_transform = head_stack.pop();
@@ -1461,7 +1441,7 @@ const Main_Scene =
       head_transform = head_transform.times(Mat4.translation([-3.5, 5, -0.5]));
       head_stack.push(head_transform); 
       head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
 
       for (let i = 0; i < 7; i++)
       {
@@ -1480,7 +1460,7 @@ const Main_Scene =
       head_transform = head_transform.times(Mat4.translation([-3.5, 6, -0.5]));
       head_stack.push(head_transform); 
       head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
 
       for (let i = 0; i < 7; i++)
       {
@@ -1499,7 +1479,7 @@ const Main_Scene =
       head_transform = head_transform.times(Mat4.translation([-3.5, 7, -0.5]));
       head_stack.push(head_transform); 
       head_transform = head_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
-      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( black ));
+      this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
 
       for (let i = 0; i < 7; i++)
       {
@@ -1547,20 +1527,74 @@ const Main_Scene =
             this.shapes.box.draw(context, program_state, head_transform, this.materials.plastic.override( red ));
       }
 
+/// ********* END HEAD *********
 
 
 
+/// ********* LEFT ARM *********
+      let la_transform = spiderman_transform.times(Mat4.translation([0,0,-10]));
+      la_transform = la_transform.times(Mat4.translation([4.5,2.5,-1.5]));
+      let la_stack = [la_transform];
+      la_stack.push(la_transform);
+      la_transform = la_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, la_transform, this.materials.plastic.override( blue ));
+      la_transform = la_stack.pop();
+      la_transform = la_transform.times(Mat4.translation([1.5,0,0]));
+      this.shapes.box.draw(context, program_state, la_transform, this.materials.plastic.override( blue ));
+      la_transform = la_transform.times(Mat4.translation([1.5,0,0]));
+      la_transform = la_transform.times(Mat4.scale(Vec.of(0.5, 1, 1)));
+      this.shapes.box.draw(context, program_state, la_transform, this.materials.plastic.override( red ));
+/// ********* END LEFT ARM *********
 
 
 
+/// ********* RIGHT ARM *********
+      let ra_transform = spiderman_transform.times(Mat4.translation([0,0,-10]));
+      ra_transform = ra_transform.times(Mat4.translation([-4.5,2.5,-1.5]));
+      let ra_stack = [ra_transform];
+      ra_stack.push(ra_transform);
+      ra_transform = ra_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, ra_transform, this.materials.plastic.override( blue ));
+      ra_transform = ra_stack.pop();
+      ra_transform = ra_transform.times(Mat4.translation([-1.5, 0, 0]));
+      this.shapes.box.draw(context, program_state, ra_transform, this.materials.plastic.override( blue ));
+      ra_transform = ra_transform.times(Mat4.translation([-1.5, 0, 0]));
+      ra_transform = ra_transform.times(Mat4.scale(Vec.of(0.5, 1, 1)));
+      this.shapes.box.draw(context, program_state, ra_transform, this.materials.plastic.override( red ));
+/// ********* END RIGHT ARM *********
 
 
 
+/// ********* LEFT LEG *********
+      let ll_transform = spiderman_transform.times(Mat4.translation([0,0,-10]));
+      ll_transform = ll_transform.times(Mat4.translation([2, -5.5, -1.5]));
+      let ll_stack = [ll_transform];
+      ll_stack.push(ll_transform);
+      ll_transform = ll_transform.times(Mat4.scale(Vec.of(0.5, 0.5, 0.5)));
+      this.shapes.box.draw(context, program_state, ll_transform, this.materials.plastic.override( blue ));
+      ll_transform = ll_stack.pop();
+      ll_transform = ll_transform.times(Mat4.translation([0, -1.5, 0]));
+      this.shapes.box.draw(context, program_state, ll_transform, this.materials.plastic.override( blue ));
+      ll_transform = ll_transform.times(Mat4.translation([0, -3, 0]));
+      ll_transform = ll_transform.times(Mat4.scale(Vec.of(1, 2, 1)));
+      this.shapes.box.draw(context, program_state, ll_transform, this.materials.plastic.override( red ));
+/// ********* END LEFT LEG *********
 
 
-
-
-
+/// ********* RIGHT LEG *********
+      let rl_transform = spiderman_transform.times(Mat4.translation([0,0,-10]));
+      rl_transform = rl_transform.times(Mat4.translation([-2, -5.5, -1.5]));
+      let rl_stack = [rl_transform];
+      rl_stack.push(rl_transform);
+      rl_transform = rl_transform.times(Mat4.scale(Vec.of(0.5,0.5,0.5)));
+      this.shapes.box.draw(context, program_state, rl_transform, this.materials.plastic.override( blue ));
+      rl_transform = rl_stack.pop();
+      rl_transform = rl_transform.times(Mat4.translation([0, -1.5, 0]));
+      this.shapes.box.draw(context, program_state, rl_transform, this.materials.plastic.override( blue ));
+      rl_transform = rl_transform.times(Mat4.translation([0, -3, 0]));
+      rl_transform = rl_transform.times(Mat4.scale(Vec.of(1, 2, 1)));
+      this.shapes.box.draw(context, program_state, rl_transform, this.materials.plastic.override( red ));
+/// ********* END RIGHT LEG *********
 
 
 
@@ -1571,6 +1605,9 @@ const Main_Scene =
 
 
       
+
+
+
 
 
 
