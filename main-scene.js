@@ -39,7 +39,7 @@ var box_array = [[[]]]; //depth, row, column
 for(let x = 0; x < 6; i++) {
     for(let y = 0; y < 10; j++) {
         for(let z = 0; z < 3; k++) {
-            box_array[x][y][z] = new Box(red, 0.5);
+            box_array[x][y][z] = new Box(Color.of(1, 0, 0, 1), 0.5);
         }
     }
 }
