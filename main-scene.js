@@ -4,9 +4,24 @@ const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
   Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
 const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
+var snap_on = false;
+var audio_flag = false;
+var fade_flag = false;
+const audio_delay = 2;
+const fade_delay = audio_delay + 6;
 var t_snap_time = undefined;
+var t_mr_stark = undefined;
 // Now we have loaded everything in the files tiny-graphics.js, tiny-graphics-widgets.js, and assignment-4-resources.js.
 // This yielded "tiny", an object wrapping the stuff in the first two files, and "defs" for wrapping all the rest.
+function play_snap(name) {
+    if (name === "snap") {
+      var audio = new Audio('./assets/snap.mp3');
+      snap_on = true;
+    }
+    else
+      var audio = new Audio('./assets/mr_stark.mp3');
+    audio.play();
+}
 
 // (Can define Main_Scene's class here)
 
@@ -80,16 +95,18 @@ const Main_Scene =
 
       // Some setup code that tracks whether the "lights are on" (the stars), and also
       // stores 30 random location matrices for drawing stars behind the solar system:
-      this.snap_on = false;
+      snap_on = false;
       this.star_matrices = [];
       for (let i = 0; i < 30; i++)
         this.star_matrices.push(Mat4.rotation(Math.PI / 2 * (Math.random() - .5), Vec.of(0, 1, 0))
           .times(Mat4.rotation(Math.PI / 2 * (Math.random() - .5), Vec.of(1, 0, 0)))
           .times(Mat4.translation([0, 0, -150])));
     }
+    
     make_control_panel() {  // make_control_panel(): Sets up a panel of interactive HTML elements, including
       // buttons with key bindings for affecting this scene, and live info readouts.
-      this.key_triggered_button("Snap", ["`"], () => this.snap_on = true);
+      
+      this.key_triggered_button("Snap", ["`"], () => play_snap("snap"));
     }
     display(context, program_state) {                                                // display():  Called once per frame of animation.  For each shape that you want to
       // appear onscreen, place a .draw() call for it inside.  Each time, pass in a
@@ -116,6 +133,19 @@ const Main_Scene =
       // Find how much time has passed in seconds; we can use
       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
+      if (typeof t_snap_time === 'undefined' && snap_on) {
+          t_snap_time = t + fade_delay;
+          t_mr_stark = t + audio_delay;
+      }
+
+      if (t > t_mr_stark && !audio_flag) {
+        play_snap("stark");
+        audio_flag = true;
+      }
+      
+      if (t > t_snap_time && !fade_flag) {
+         fade_flag = true;
+      }
       function slope_decider() { //Function used to decide slope for moving blocks
         var max = 1; //TODO: Tune this
         var min = 0; //TODO: Tune this
@@ -148,9 +178,6 @@ const Main_Scene =
       const blue = Color.of(0, 0, 1, 1);
       const black = Color.of(0, 0, 0, 1);
 
-
-      
-
       // Variable model_transform will be a local matrix value that helps us position shapes.
       // It starts over as the identity every single frame - coordinate axes at the origin.
       let model_transform = Mat4.identity();       
@@ -159,7 +186,6 @@ const Main_Scene =
       // the shader when coloring shapes.  See Light's class definition for inputs.
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of( 1,1,1,1 ), 100000 ) ];
       
-
       /// *********  BACKGROUND SCENE *********
       //Create a scene
       let sky_transform = Mat4.identity();
