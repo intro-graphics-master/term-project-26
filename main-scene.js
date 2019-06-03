@@ -21,13 +21,13 @@ let spiderman_transform = Mat4.identity();
 let body_transform = spiderman_transform.times(Mat4.translation([-5, 10, -15]));
 
 
-var depth = 6, height = 10, width = 3;
+var width = 6, height = 10, depth = 3;
 var box_array = new Array();
-for(let x = 0; x < depth; x++) {
+for(let x = 0; x < width; x++) {
     box_array[x] = new Array();
     for(let y = 0; y < height; y++) {
         box_array[x][y] = new Array();
-        for(let z = 0; z < width; z++) {
+        for(let z = 0; z < depth; z++) {
             let translated_transform = body_transform.times(Mat4.translation([2 * x, 2 * -y, 2 * z]));
             box_array[x][y][z] = new Box(Color.of(1, 0, 0, 1), translated_transform, 0.5);
         }
@@ -235,9 +235,9 @@ class I_am_Inevitable extends Scene {
 
         /// ********* END BACKGROUND SCENE *********
 
-        for(let x = 0; x < 6; x++) {
-            for(let y = 0; y < 10; y++) {
-                for(let z = 0; z < 3; z++) {
+        for(let x = 0; x < width; x++) {
+            for(let y = 0; y < height; y++) {
+                for(let z = 0; z < depth; z++) {
                     this.shapes.box.draw(context, program_state, box_array[x][y][z].transform,
                     this.materials.plastic.override(box_array[x][y][z].color));
                 }
