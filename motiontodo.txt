@@ -13,3 +13,7 @@ Step 3: Add color gradient
     Find that nice shade of brown that all the characters turn into
     Write a function which takes in a color and a time. Returns a ratio between
     the color and the brown using t as a gradient.
+
+Step 4: Fan out
+    Add a rotation on the y-axis before motion to add out a fan out effect
+    Save random angle in array
