@@ -23,6 +23,28 @@ function play_snap(name) {
     audio.play();
 }
 
+const Box = defs.Box =
+class Box {
+  constructor(color, slope) {
+      this.color = color;
+      this.slope = slope;
+  }
+}
+
+
+let spiderman_transform = Mat4.identity();
+let body_transform = spiderman_transform.times(Mat4.translation([-2.5, 5, -1]));
+
+var box_array = [[[]]]; //depth, row, column
+for(let x = 0; x < 6; i++) {
+    for(let y = 0; y < 10; j++) {
+        for(let z = 0; z < 3; k++) {
+            box_array[x][y][z] = new Box(red, 0.5);
+        }
+    }
+}
+
+
 // (Can define Main_Scene's class here)
 
 const Main_Scene =
