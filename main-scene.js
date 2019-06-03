@@ -8,6 +8,11 @@ var t_snap_time = undefined;
 // Now we have loaded everything in the files tiny-graphics.js, tiny-graphics-widgets.js, and assignment-4-resources.js.
 // This yielded "tiny", an object wrapping the stuff in the first two files, and "defs" for wrapping all the rest.
 
+//colors
+const red = Color.of(1, 0, 0, 1);
+const blue = Color.of(0, 0, 1, 1);
+const black = Color.of(0, 0, 0, 1);
+
 const Box = defs.Box =
 class Box {
   constructor(color, transform, slope) {
@@ -18,7 +23,8 @@ class Box {
 }
 
 let spiderman_transform = Mat4.identity();
-let body_transform = spiderman_transform.times(Mat4.translation([-5, 10, -15]));
+let body_transform = spiderman_transform.times(Mat4.translation([-2.5, 5, -10]));
+body_transform = body_transform.times(Mat4.scale([0.5, 0.5, 0.5]));
 
 
 var width = 6, height = 10, depth = 3;
@@ -170,10 +176,6 @@ class I_am_Inevitable extends Scene {
          Start coding down here!!!!
         **********************************/
 
-        //colors
-        const red = Color.of(1, 0, 0, 1);
-        const blue = Color.of(0, 0, 1, 1);
-        const black = Color.of(0, 0, 0, 1);
 
 
         
