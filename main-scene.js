@@ -9,7 +9,7 @@ var audio_flag = false;
 var fade_flag = false;
 const audio_delay = 2;
 const fade_delay = audio_delay + 6;
-const complete_fade = 5; //TODO: Tune this
+const complete_fade = 6; //TODO: Tune this
 var t_snap_time = -1;
 var t_mr_stark = undefined;
 // Now we have loaded everything in the files tiny-graphics.js, tiny-graphics-widgets.js, and assignment-4-resources.js.
@@ -33,7 +33,7 @@ function slope_decider() { //Function used to decide slope for moving blocks
 
 function offset(x_pos) {
     var x_max = 8;
-    var fade_speed = 5; //TODO: Tune this
+    var fade_speed = 6; //TODO: Tune this
     return ((x_max - x_pos)/fade_speed);
 }
 
@@ -44,7 +44,7 @@ function noey(a, b) {
 function scale_ratio(x_pos, t) {
     if (typeof t_mr_stark === 'undefined') return 1;
     let off = offset(x_pos);
-    let full = (10 + off);
+    let full = (15 + off);
     return ((full - noey(t, t_mr_stark + complete_fade + off))/(full));
 }
 
@@ -417,9 +417,7 @@ class I_am_Inevitable extends Scene {
                             */
                             
                            let fade_color = undefined;
-                            if (scale > 0.9)
-                                fade_color = box_array[x][y][z].color;
-                            else if (scale > 0.8)
+                            if (scale > 0.95)
                                 fade_color = box_array[x][y][z].color;
                             else
                                 fade_color = brown;
