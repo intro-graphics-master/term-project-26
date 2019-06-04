@@ -172,7 +172,7 @@ for(let x = 0; x < width; x++) {
         box_array[x][y] = new Array();
         for(let z = 0; z < depth; z++) {
             let translated_transform = body_transform.times(Mat4.translation([2*x, 2*-y, 2*-z]));
-            let angle = 45;
+            let angle = Math.random()*5;
             switch(image[z][y][x]) {
                 case 1:
                     box_array[x][y][z] = new Box(true, white, translated_transform, angle);
@@ -393,8 +393,12 @@ class I_am_Inevitable extends Scene {
                     if(box_array[x][y][z].fill) {
                         
                         let scale = scale_ratio(x, t);
+                        let translate_speed = 0.4
                         if(scale < 1) {
-                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.translation([0.1, 0, 0]));
+                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(box_array[x][y][z].slope, [0, 1, 0]));
+                            //box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(box_array[x][y][z].slope[1], [0, 0, 1]));
+                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.translation([translate_speed, 0, 0]));
+                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(-box_array[x][y][z].slope, [0, 1, 0]));
                         }
                         box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.scale(Vec.of( scale, scale, scale )));
                         if (scale > 0.01) {
@@ -478,5 +482,29 @@ const Camera_Teleporter = defs.Camera_Teleporter =
         return;
       const dt = program_state.animation_delta_time;
       program_state.set_camera(desired_camera.map((x, i) => Vec.from(program_state.camera_inverse[i]).mix(x, .01 * dt)));
+    }
+  }
+
+
+const Planar_Star = defs.Planar_Star =
+  class Planar_Star extends Shape {                                 // **Planar_Star** defines a 2D five-pointed star shape.  The star's inner 
+    // radius is 4, and its outer radius is 7.  This means the complete star 
+    // fits inside a 14 by 14 sqaure, and is centered at the origin.
+    constructor() {
+      super("position", "normal", "texture_coord");
+
+      this.arrays.position.push(Vec.of(0, 0, 0));
+      for (let i = 0; i < 11; i++) {
+        const spin = Mat4.rotation(i * 2 * Math.PI / 10, Vec.of(0, 0, -1));
+
+        const radius = i % 2 ? 4 : 7;
+        const new_point = spin.times(Vec.of(0, radius, 0, 1)).to3();
+
+        this.arrays.position.push(new_point);
+        if (i > 0)
+          this.indices.push(0, i, i + 1)
+      }
+
+      this.arrays.normal = this.arrays.position.map(p => Vec.of(0, 0, -1));
     }
   }
