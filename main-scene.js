@@ -60,21 +60,9 @@ const black_rgb = [0, 0, 0];
 const white_rgb = [1, 1, 1];
 const brown_rgb = [0.5313, 0.3438, 0.1953];
 
-const Box = defs.Box =
-class Box {
-  constructor(fill, color, transform, slope) {
-      this.fill = fill;
-      this.color = color;
-      this.transform = transform;
-      this.slope = slope;
-  }
-}
+const width = 16, height = 27, depth = 3;
 
-let spiderman_transform = Mat4.identity();
-let body_transform = spiderman_transform.times(Mat4.translation([-3.5, 6.5, -4]));
-body_transform = body_transform.times(Mat4.scale([0.25, 0.25, 0.25]));
-
-var image = [ //0 - no fill, 1 - white, 2 - black, 3 - red, 4 - blue
+const image = [ //0 - no fill, 1 - white, 2 - black, 3 - red, 4 - blue
     [
         [0,0,0,0,0,0,3,3,3,3,0,0,0,0,0,0],
         [0,0,0,0,3,3,3,3,3,3,3,3,0,0,0,0],
@@ -164,7 +152,20 @@ var image = [ //0 - no fill, 1 - white, 2 - black, 3 - red, 4 - blue
     ]
 ];
 
-var width = 16, height = 27, depth = 3;
+const Box = defs.Box =
+class Box {
+  constructor(fill, color, transform, slope) {
+      this.fill = fill;
+      this.color = color;
+      this.transform = transform;
+      this.slope = slope;
+  }
+}
+
+let spiderman_transform = Mat4.identity();
+let body_transform = spiderman_transform.times(Mat4.translation([-3.5, 6.5, -4]));
+body_transform = body_transform.times(Mat4.scale([0.25, 0.25, 0.25]));
+
 var box_array = new Array();
 for(let x = 0; x < width; x++) {
     box_array[x] = new Array();
@@ -172,7 +173,8 @@ for(let x = 0; x < width; x++) {
         box_array[x][y] = new Array();
         for(let z = 0; z < depth; z++) {
             let translated_transform = body_transform.times(Mat4.translation([2*x, 2*-y, 2*-z]));
-            let angle = Math.random()*5;
+            let random_vert_angle = Math.random()*5 - 2.5, random_horiz_angle = Math.random()*2; //TODO: tune this
+            let angle = [random_vert_angle, random_horiz_angle];
             switch(image[z][y][x]) {
                 case 1:
                     box_array[x][y][z] = new Box(true, white, translated_transform, angle);
@@ -395,10 +397,11 @@ class I_am_Inevitable extends Scene {
                         let scale = scale_ratio(x, t);
                         let translate_speed = 0.4
                         if(scale < 1) {
-                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(box_array[x][y][z].slope, [0, 1, 0]));
-                            //box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(box_array[x][y][z].slope[1], [0, 0, 1]));
+                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(box_array[x][y][z].slope[0], [0, 1, 0]));
+                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(box_array[x][y][z].slope[1], [0, 0, 1]));
                             box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.translation([translate_speed, 0, 0]));
-                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(-box_array[x][y][z].slope, [0, 1, 0]));
+                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(-box_array[x][y][z].slope[1], [0, 0, 1]));
+                            box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.rotation(-box_array[x][y][z].slope[0], [0, 1, 0]));
                         }
                         box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.scale(Vec.of( scale, scale, scale )));
                         if (scale > 0.01) {
