@@ -48,43 +48,17 @@ function scale_ratio(x_pos, t) {
     return ((full - noey(t, t_mr_stark + complete_fade + off))/(full));
 }
 
-function color_gradient(color_orig, scale) {
-    let red_rgb = [1, 0, 0];
-    let blue_rgb = [0, 0, 1];
-    let black_rgb = [0, 0, 0];
-    let white_rgb = [1, 1, 1];
-    if (color_orig === "red") {
-        let r = (1 - scale) * (0.53125) + scale * red_rgb[0];
-        let g = (1 - scale) * (0.34375) + scale * red_rgb[1];
-        let b = (1 - scale) * (0.1953125) + scale * red_rgb[2];
-        return Color.of(r, g, b, 1)
-    }
-    else if (color_orig === "blue") {
-        let r = (1 - scale) * (0.53125) + scale * blue_rgb[0];
-        let g = (1 - scale) * (0.34375) + scale * blue_rgb[1];
-        let b = (1 - scale) * (0.1953125) + scale * blue_rgb[2];
-        return Color.of(r, g, b, 1)
-    }
-    else if (color_orig === "black") {
-        let r = (1 - scale) * (0.53125) + scale * black_rgb[0];
-        let g = (1 - scale) * (0.34375) + scale * black_rgb[1];
-        let b = (1 - scale) * (0.1953125) + scale * black_rgb[2];
-        return Color.of(r, g, b, 1)
-    }
-    else {
-        let r = (1 - scale) * (0.53125) + scale * white_rgb[0];
-        let g = (1 - scale) * (0.34375) + scale * white_rgb[1];
-        let b = (1 - scale) * (0.1953125) + scale * white_rgb[2];
-        return Color.of(r, g, b, 1)
-    }
-}
-
 //colors
 const red = Color.of(1, 0, 0, 1);
 const blue = Color.of(0, 0, 1, 1);
 const black = Color.of(0, 0, 0, 1);
 const white = Color.of(1, 1, 1, 1);
-const brown = Color.of(0.53125, 0.34375, 0.1953125, 1);
+const brown = Color.of(0.5313, 0.3438, 0.1953, 1);
+const red_rgb = [1, 0, 0];
+const blue_rgb = [0, 0, 1];
+const black_rgb = [0, 0, 0];
+const white_rgb = [1, 1, 1];
+const brown_rgb = [0.5313, 0.3438, 0.1953];
 
 const Box = defs.Box =
 class Box {
@@ -200,13 +174,13 @@ for(let x = 0; x < width; x++) {
             let translated_transform = body_transform.times(Mat4.translation([2*x, 2*-y, 2*-z]));
 
             if(image[z][y][x] == 1) {
-                box_array[x][y][z] = new Box(true, "white", translated_transform, 0.5);
+                box_array[x][y][z] = new Box(true, white, translated_transform, 0.5);
             } else if(image[z][y][x] == 2) {
-                box_array[x][y][z] = new Box(true, "black", translated_transform, 0.5);
+                box_array[x][y][z] = new Box(true, black, translated_transform, 0.5);
             } else if(image[z][y][x] == 3) {
-                box_array[x][y][z] = new Box(true, "red", translated_transform, 0.5);
+                box_array[x][y][z] = new Box(true, red, translated_transform, 0.5);
             } else if(image[z][y][x] == 4) {
-                box_array[x][y][z] = new Box(true, "blue", translated_transform, 0.5);
+                box_array[x][y][z] = new Box(true, blue, translated_transform, 0.5);
             } else {
                 box_array[x][y][z] = new Box(false, Color.of(0, 0, 0, 0), translated_transform, 0.5);
             }
@@ -415,9 +389,43 @@ class I_am_Inevitable extends Scene {
                         let scale = scale_ratio(x, t);
                         box_array[x][y][z].transform = box_array[x][y][z].transform.times(Mat4.scale(Vec.of( scale, scale, scale )));
                         if (scale > 0.01) {
-                            let fade_color = color_gradient(box_array[x][y][z].color, scale);
+                            /*
+                            if (box_array[x][y][z].color === red) {
+                                const r = (1 - scale) * brown_rgb[0] + scale * red_rgb[0];
+                                const g = (1 - scale) * brown_rgb[1] + scale * red_rgb[1];
+                                const b = (1 - scale) * brown_rgb[2] + scale * red_rgb[2];
+                                fade_color = Color.of(r, g, b, 1);
+                            }
+                            else if (box_array[x][y][z].color === blue) {
+                                const r = (1 - scale) * brown_rgb[0] + scale * blue_rgb[0];
+                                const g = (1 - scale) * brown_rgb[1] + scale * blue_rgb[1];
+                                const b = (1 - scale) * brown_rgb[2] + scale * blue_rgb[2];
+                                fade_color = Color.of(r, g, b, 1);
+                            }
+                            else if (box_array[x][y][z].color === black) {
+                                const r = (1 - scale) * brown_rgb[0] + scale * black_rgb[0];
+                                const g = (1 - scale) * brown_rgb[1] + scale * black_rgb[1];
+                                const b = (1 - scale) * brown_rgb[2] + scale * black_rgb[2];
+                                fade_color = Color.of(r, g, b, 1);
+                            }
+                            else {
+                                const r = (1 - scale) * brown_rgb[0] + scale * white_rgb[0];
+                                const g = (1 - scale) * brown_rgb[1] + scale * white_rgb[1];
+                                const b = (1 - scale) *brown_rgb[2] + scale * white_rgb[2];
+                                fade_color = Color.of(r, g, b, 1);
+                            }
+                            */
+                            
+                           let fade_color = undefined;
+                            if (scale > 0.9)
+                                fade_color = box_array[x][y][z].color;
+                            else if (scale > 0.8)
+                                fade_color = box_array[x][y][z].color;
+                            else
+                                fade_color = brown;
+
                             this.shapes.box.draw(context, program_state, box_array[x][y][z].transform,
-                            this.materials.plastic.override(fade_color));
+                            this.materials.plastic.override( fade_color ));
                         }
                     }
                 }
