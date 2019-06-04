@@ -173,16 +173,21 @@ for(let x = 0; x < width; x++) {
         for(let z = 0; z < depth; z++) {
             let translated_transform = body_transform.times(Mat4.translation([2*x, 2*-y, 2*-z]));
 
-            if(image[z][y][x] == 1) {
-                box_array[x][y][z] = new Box(true, white, translated_transform, 0.5);
-            } else if(image[z][y][x] == 2) {
-                box_array[x][y][z] = new Box(true, black, translated_transform, 0.5);
-            } else if(image[z][y][x] == 3) {
-                box_array[x][y][z] = new Box(true, red, translated_transform, 0.5);
-            } else if(image[z][y][x] == 4) {
-                box_array[x][y][z] = new Box(true, blue, translated_transform, 0.5);
-            } else {
-                box_array[x][y][z] = new Box(false, Color.of(0, 0, 0, 0), translated_transform, 0.5);
+            switch(image[z][y][x]) {
+                case 1:
+                    box_array[x][y][z] = new Box(true, white, translated_transform, 0.5);
+                    break;
+                case 2:
+                    box_array[x][y][z] = new Box(true, black, translated_transform, 0.5);
+                    break;
+                case 3:
+                    box_array[x][y][z] = new Box(true, red, translated_transform, 0.5);
+                    break;
+                case 4:
+                    box_array[x][y][z] = new Box(true, blue, translated_transform, 0.5);
+                    break;
+                default:
+                    box_array[x][y][z] = new Box(false, Color.of(0, 0, 0, 0), translated_transform, 0.5);
             }
             
         }
@@ -195,70 +200,70 @@ for(let x = 0; x < width; x++) {
 const Main_Scene =
 class I_am_Inevitable extends Scene {
     constructor() { // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
-      super();
-      // At the beginning of our program, load one of each of these shape 
-      // definitions onto the GPU.  NOTE:  Only do this ONCE per shape.
-      // Don't define blueprints for shapes in display() every frame.
+        super();
+        // At the beginning of our program, load one of each of these shape 
+        // definitions onto the GPU.  NOTE:  Only do this ONCE per shape.
+        // Don't define blueprints for shapes in display() every frame.
 
-      this.shapes = {
-        'box': new Cube(),
-        'ball_4': new Subdivision_Sphere(4),
-        'star': new Planar_Star()
-      };
+        this.shapes = {
+            'box': new Cube(),
+            'ball_4': new Subdivision_Sphere(4),
+            'star': new Planar_Star()
+        };
 
-      // *** Shaders ***
+        // *** Shaders ***
 
-      // NOTE: The 2 in each shader argument refers to the max
-      // number of lights, which must be known at compile time.
+        // NOTE: The 2 in each shader argument refers to the max
+        // number of lights, which must be known at compile time.
 
-      // A simple Phong_Blinn shader without textures:
-      const phong_shader = new defs.Phong_Shader(2);
-      // Adding textures to the previous shader:
-      const texture_shader = new defs.Textured_Phong(2);
-      // Same thing, but with a trick to make the textures 
-      // seemingly interact with the lights:
-      const texture_shader_2 = new defs.Fake_Bump_Map(2);
-      const sky_box = new defs.Sky_Box(2);
-    
-      // *** Materials: *** wrap a dictionary of "options" for a shader.
+        // A simple Phong_Blinn shader without textures:
+        const phong_shader = new defs.Phong_Shader(2);
+        // Adding textures to the previous shader:
+        const texture_shader = new defs.Textured_Phong(2);
+        // Same thing, but with a trick to make the textures 
+        // seemingly interact with the lights:
+        const texture_shader_2 = new defs.Fake_Bump_Map(2);
+        const sky_box = new defs.Sky_Box(2);
+        
+        // *** Materials: *** wrap a dictionary of "options" for a shader.
 
-      this.materials = {
-        plastic: new Material(phong_shader,
-          { ambient: 1, diffusivity: 0, specularity: 0, color: Color.of(1, .5, 1, 1) }),
-        metal: new Material(phong_shader,
-          { ambient: 0, diffusivity: 1, specularity: 1, color: Color.of(1, .5, 1, 1) }),
-          down: new Material(sky_box, 
-          {
-              texture: new Texture("assets/down.jpg"),
-              ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
-          }),
+        this.materials = {
+            plastic: new Material(phong_shader,
+            { ambient: 1, diffusivity: 0, specularity: 0, color: Color.of(1, .5, 1, 1) }),
+            metal: new Material(phong_shader,
+            { ambient: 0, diffusivity: 1, specularity: 1, color: Color.of(1, .5, 1, 1) }),
+            down: new Material(sky_box, 
+            {
+                texture: new Texture("assets/down.jpg"),
+                ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
+            }),
 
-          right: new Material(sky_box, 
-          {
-              texture: new Texture("assets/right.jpg"),
-              ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
-          }),
-          back: new Material(sky_box, 
-          {
-              texture: new Texture("assets/back.jpg"),
-              ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
-          }),
-          left: new Material(sky_box, 
-          {
-              texture: new Texture("assets/left.jpg"),
-              ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
-          }),   
-          front: new Material(sky_box, 
-          {
-              texture: new Texture("assets/front.jpg"),
-              ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
-          }),   
-          up: new Material(sky_box, 
-          {
-              texture: new Texture("assets/up.jpg"),
-              ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
-          })
-      };
+            right: new Material(sky_box, 
+            {
+                texture: new Texture("assets/right.jpg"),
+                ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
+            }),
+            back: new Material(sky_box, 
+            {
+                texture: new Texture("assets/back.jpg"),
+                ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
+            }),
+            left: new Material(sky_box, 
+            {
+                texture: new Texture("assets/left.jpg"),
+                ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
+            }),   
+            front: new Material(sky_box, 
+            {
+                texture: new Texture("assets/front.jpg"),
+                ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
+            }),   
+            up: new Material(sky_box, 
+            {
+                texture: new Texture("assets/up.jpg"),
+                ambient: 1, diffusivity: 1, specularity: 1, color: Color.of(0,0,0,1 )
+            })
+        };
 
       // Some setup code that tracks whether the "lights are on" (the stars), and also
       // stores 30 random location matrices for drawing stars behind the solar system:
